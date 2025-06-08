@@ -1,65 +1,66 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { supabase, Candidate } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { Download, Users, TrendingUp, Calendar } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
+import { Bar } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+import * as XLSX from 'xlsx'
 
-export default function ManagerDashboard() {
-  const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [stats, setStats] = useState({
-    total: 0,
-    thisMonth: 0,
-    conversion: 0,
-  })
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+
+export default function ManagerPage() {
   const { signOut } = useAuth()
+  const [candidates, setCandidates] = useState([])
+  const [monthlyStats, setMonthlyStats] = useState<number[]>([])
 
   useEffect(() => {
     fetchCandidates()
   }, [])
 
   const fetchCandidates = async () => {
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (!error && data) {
-      setCandidates(data)
-      const total = data.length
-      const thisMonth = data.filter(c =>
-        new Date(c.created_at).getMonth() === new Date().getMonth()
-      ).length
-      setStats({
-        total,
-        thisMonth,
-        conversion: total > 0 ? Math.round((thisMonth / total) * 100) : 0,
-      })
-    }
+    const { data, error } = await supabase.from('candidates').select('*')
+    if (error) return console.error(error)
+    setCandidates(data || [])
+    calculateMonthlyStats(data || [])
   }
 
-  const exportData = () => {
-    const csvContent = [
-      ['Nome', 'Email', 'Note', 'Data'],
-      ...candidates.map(c => [
-        c.name,
-        c.email,
-        c.note || '',
-        new Date(c.created_at).toLocaleDateString('it-IT')
-      ])
-    ].map(r => r.join(',')).join('\n')
+  const calculateMonthlyStats = (data: any[]) => {
+    const monthly = new Array(12).fill(0)
+    data.forEach((c) => {
+      const month = new Date(c.created_at).getMonth()
+      monthly[month]++
+    })
+    setMonthlyStats(monthly)
+  }
 
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = 'candidati.csv'
-    a.click()
+  const exportXLSX = () => {
+    const worksheet = XLSX.utils.json_to_sheet(
+      candidates.map((c) => ({
+        Nome: c.name,
+        Email: c.email,
+        Note: c.note,
+        'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT')
+      }))
+    )
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidati')
+    XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
   return (
     <div className="min-h-screen bg-bg-light">
-      <header className="bg-white border-b shadow-sm">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-bg-dark">Dashboard Executive Manager</h1>
@@ -69,54 +70,82 @@ export default function ManagerDashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Statistiche */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card icon={<Users />} label="Totali" value={stats.total} />
-          <Card icon={<Calendar />} label="Questo mese" value={stats.thisMonth} />
-          <Card icon={<TrendingUp />} label="Conversione" value={`${stats.conversion}%`} />
+      <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* STATISTICHE */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Candidati Totali</p>
+            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Mese Corrente</p>
+            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Conversione %</p>
+            <p className="text-3xl font-bold text-bg-dark">
+              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
+            </p>
+          </div>
         </div>
 
-        {/* Esportazione */}
-        <div className="bg-white p-6 rounded-lg card-shadow mb-8 flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-semibold text-bg-dark">Esporta Candidati</h2>
-            <p className="text-gray-600">Scarica i dati in formato CSV</p>
-          </div>
-          <Button onClick={exportData}>
-            <Download className="w-4 h-4 mr-2" /> Esporta CSV
-          </Button>
+        {/* GRAFICO */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
+          <Bar
+            height={300}
+            options={{ responsive: true, plugins: { legend: { display: false } } }}
+            data={{
+              labels: [
+                'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
+                'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'
+              ],
+              datasets: [
+                {
+                  label: 'Candidati',
+                  data: monthlyStats,
+                  backgroundColor: '#DC2626'
+                }
+              ]
+            }}
+          />
         </div>
 
-        {/* Tabella */}
-        <div className="bg-white rounded-lg card-shadow">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-bg-dark">
-              Lista Candidati ({candidates.length})
-            </h2>
+        {/* ESPORTAZIONE E TABELLA */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
+            <Button onClick={exportXLSX}>
+              <Download className="w-4 h-4 mr-2" /> Esporta
+            </Button>
           </div>
+
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm divide-y divide-gray-200">
+            <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Nome</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Note</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Data</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">CV</th>
+                  <th className="px-4 py-2 text-left">Nome</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Note</th>
+                  <th className="px-4 py-2 text-left">CV</th>
+                  <th className="px-4 py-2 text-left">Data</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y">
                 {candidates.map((c) => (
                   <tr key={c.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{c.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{c.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{c.note}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-bg-red">
+                    <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
+                    <td className="px-4 py-2">{c.email}</td>
+                    <td className="px-4 py-2">{c.note}</td>
+                    <td className="px-4 py-2">
                       {c.file_url ? (
-                        <a href={c.file_url} target="_blank" className="hover:underline">Scarica</a>
-                      ) : '—'}
+                        <a href={c.file_url} target="_blank" className="text-bg-red underline">CV</a>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {new Date(c.created_at).toLocaleDateString('it-IT')}
                     </td>
                   </tr>
                 ))}
@@ -125,20 +154,6 @@ export default function ManagerDashboard() {
           </div>
         </div>
       </main>
-    </div>
-  )
-}
-
-function Card({ icon, label, value }: { icon: React.ReactNode, label: string, value: number | string }) {
-  return (
-    <div className="bg-white rounded-lg card-shadow p-6 flex items-center">
-      <div className="text-bg-red w-10 h-10 flex items-center justify-center">
-        {icon}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm text-gray-500 font-medium">{label}</p>
-        <p className="text-2xl font-bold text-bg-dark">{value}</p>
-      </div>
     </div>
   )
 }
