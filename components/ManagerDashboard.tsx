@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -58,6 +59,11 @@ export default function ManagerPage() {
     XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
+  const currentMonth = new Date().getMonth()
+  const total = candidates.length
+  const monthTotal = monthlyStats[currentMonth]
+  const conversion = total > 0 ? Math.round((monthTotal / total) * 100) : 0
+
   return (
     <div className="min-h-screen bg-bg-light">
       <header className="bg-white shadow-sm border-b border-gray-200">
@@ -75,17 +81,16 @@ export default function ManagerPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Candidati Totali</p>
-            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
+            <p className="text-3xl font-bold text-bg-dark">{total}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
+            <p className="text-3xl font-bold text-bg-dark">{monthTotal}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Conversione %</p>
-            <p className="text-3xl font-bold text-bg-dark">
-              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
-            </p>
+            <p className="text-3xl font-bold text-bg-dark">{conversion}%</p>
+            <Progress value={conversion} />
           </div>
         </div>
 
