@@ -30,7 +30,6 @@ export default function ManagerDashboard() {
 
       setCandidates(data || [])
 
-      // Calculate stats
       const total = data?.length || 0
       const thisMonth = data?.filter(c => 
         new Date(c.created_at).getMonth() === new Date().getMonth()
@@ -67,7 +66,6 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-bg-light">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -85,7 +83,6 @@ export default function ManagerDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg card-shadow p-6">
             <div className="flex items-center">
@@ -118,7 +115,6 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Export Section */}
         <div className="bg-white rounded-lg card-shadow p-6 mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -132,7 +128,6 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Candidates Table */}
         <div className="bg-white rounded-lg card-shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-bg-dark">
@@ -144,45 +139,23 @@ export default function ManagerDashboard() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Note
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CV
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Creazione
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CV</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Creazione</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {candidates.map((candidate) => (
                   <tr key={candidate.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {candidate.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {candidate.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {candidate.note}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{candidate.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{candidate.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{candidate.note}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {candidate.file_url ? (
-                        <a 
-                          href={candidate.file_url} 
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-bg-red hover:underline"
-                        >
-                          <Download className="w-4 h-4 inline mr-1" />
-                          Scarica
+                        <a href={candidate.file_url} target="_blank" rel="noopener noreferrer" className="text-bg-red hover:underline">
+                          <Download className="w-4 h-4 inline mr-1" /> Scarica
                         </a>
                       ) : (
                         <span className="text-gray-400">Nessun file</span>
