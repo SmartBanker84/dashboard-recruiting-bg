@@ -1,10 +1,13 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { supabase, Candidate } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { Upload, Download, Edit, Trash2 } from 'lucide-react'
+import { Upload, Trash2, CheckCircle, Clock } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
 
 export default function RecruitingDashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
@@ -18,116 +21,141 @@ export default function RecruitingDashboard() {
   }, [])
 
   const fetchCandidates = async () => {
-    const { data, error } = await supabase.from('candidates').select('*').order('created_at', { ascending: false })
-    if (!error) setCandidates(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('created_by', user?.id)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setCandidates(data || [])
+    } catch (error) {
+      console.error('Error fetching candidates:', error)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
-    const { error } = await supabase.from('candidates').insert([{ ...newCandidate, created_by: user?.id }])
-    if (!error) {
+    try {
+      const { error } = await supabase
+        .from('candidates')
+        .insert([{ ...newCandidate, created_by: user?.id }])
+      if (error) throw error
       setNewCandidate({ name: '', email: '', note: '' })
       fetchCandidates()
+    } catch (error) {
+      console.error('Error creating candidate:', error)
     }
-
     setLoading(false)
   }
 
   const handleFileUpload = async (candidateId: string, file: File) => {
     setUploading(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${candidateId}_${Date.now()}.${fileExt}`
-
-    const { error: uploadError } = await supabase.storage.from('cv-files').upload(fileName, file)
-    if (!uploadError) {
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${candidateId}_${Date.now()}.${fileExt}`
+      const { error: uploadError } = await supabase.storage.from('cv-files').upload(fileName, file)
+      if (uploadError) throw uploadError
       const { data: { publicUrl } } = supabase.storage.from('cv-files').getPublicUrl(fileName)
       await supabase.from('candidates').update({ file_url: publicUrl }).eq('id', candidateId)
       fetchCandidates()
+    } catch (error) {
+      console.error('Error uploading file:', error)
     }
     setUploading(false)
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Eliminare questo candidato?')) {
+    if (!confirm('Sei sicuro di voler eliminare questo candidato?')) return
+    try {
       const { error } = await supabase.from('candidates').delete().eq('id', id)
-      if (!error) fetchCandidates()
+      if (error) throw error
+      fetchCandidates()
+    } catch (error) {
+      console.error('Error deleting candidate:', error)
     }
   }
 
   return (
     <div className="min-h-screen bg-bg-light">
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
-            <p className="text-sm text-gray-500">Inserimento candidati BG</p>
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiter</h1>
+              <p className="text-gray-600">Banca Generali - Inserimento Dati</p>
+            </div>
+            <Button onClick={() => signOut()} variant="outline">Logout</Button>
           </div>
-          <Button variant="outline" onClick={signOut}>Logout</Button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg p-6 card-shadow mb-6">
-          <h2 className="text-lg font-semibold text-bg-dark mb-4">Aggiungi Candidato</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg card-shadow p-6 mb-8">
+          <h2 className="text-lg font-semibold text-bg-dark mb-4">Aggiungi Nuovo Candidato</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Nome</Label>
-                <Input id="name" value={newCandidate.name} onChange={e => setNewCandidate({ ...newCandidate, name: e.target.value })} required />
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome Completo</Label>
+                <Input id="name" value={newCandidate.name} onChange={(e) => setNewCandidate({...newCandidate, name: e.target.value})} required />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={newCandidate.email} onChange={e => setNewCandidate({ ...newCandidate, email: e.target.value })} required />
+                <Input id="email" type="email" value={newCandidate.email} onChange={(e) => setNewCandidate({...newCandidate, email: e.target.value})} required />
               </div>
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="note">Note</Label>
-              <textarea id="note" rows={3} className="w-full border px-3 py-2 rounded-md" value={newCandidate.note} onChange={e => setNewCandidate({ ...newCandidate, note: e.target.value })} />
+              <textarea id="note" className="w-full px-3 py-2 border rounded-md" rows={3} value={newCandidate.note} onChange={(e) => setNewCandidate({...newCandidate, note: e.target.value})} />
             </div>
-            <Button type="submit" disabled={loading}>{loading ? 'Aggiunta in corso…' : 'Aggiungi'}</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Aggiunta...' : 'Aggiungi Candidato'}</Button>
           </form>
         </div>
 
-        <div className="bg-white rounded-lg p-6 card-shadow">
-          <h2 className="text-lg font-semibold text-bg-dark mb-4">Candidati ({candidates.length})</h2>
+        <div className="bg-white rounded-lg card-shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati ({candidates.length})</h2>
+          </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y">
-              <thead>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-sm text-gray-600">Nome</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-600">Email</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-600">Note</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-600">CV</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-600">Azioni</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Note</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CV</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progresso</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Azioni</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
-                {candidates.map(c => (
-                  <tr key={c.id}>
-                    <td className="px-4 py-2 text-sm">{c.name}</td>
-                    <td className="px-4 py-2 text-sm">{c.email}</td>
-                    <td className="px-4 py-2 text-sm">{c.note}</td>
-                    <td className="px-4 py-2 text-sm">
-                      {c.file_url ? (
-                        <a href={c.file_url} target="_blank" className="text-bg-red underline">
-                          <Download className="inline w-4 h-4 mr-1" /> Scarica
-                        </a>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {candidates.map((candidate) => (
+                  <tr key={candidate.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{candidate.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{candidate.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{candidate.note}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {candidate.file_url ? (
+                        <a href={candidate.file_url} target="_blank" rel="noopener noreferrer" className="text-bg-red hover:underline">Scarica</a>
                       ) : (
-                        <label className="text-bg-red underline cursor-pointer">
-                          <Upload className="inline w-4 h-4 mr-1" /> Carica
-                          <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={e => {
+                        <label className="cursor-pointer text-bg-red hover:underline">
+                          Carica CV
+                          <input type="file" className="hidden" onChange={(e) => {
                             const file = e.target.files?.[0]
-                            if (file) handleFileUpload(c.id, file)
+                            if (file) handleFileUpload(candidate.id, file)
                           }} />
                         </label>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-sm">
+                    <td className="px-6 py-4">
+                      <Progress value={candidate.file_url ? 100 : 20} className="h-2" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline"><Edit className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(c.id)}><Trash2 className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(candidate.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -136,7 +164,7 @@ export default function RecruitingDashboard() {
             </table>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
