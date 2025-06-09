@@ -1,69 +1,65 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 
 export default function LoginForm() {
-  const router = useRouter()
-  const { user } = useAuth()
-
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
-    setMessage('')
+    setMessage("")
+    setError("")
 
-    const { data, error } = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(res => res.json())
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
 
-    if (error) {
-      setError('Errore durante l’invio dell’email.')
-    } else {
-      setMessage('Controlla la tua email per il link di accesso.')
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || "Errore sconosciuto")
+
+      setMessage("Email di accesso inviata. Controlla la tua casella.")
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-bg-dark">Banca Generali</h1>
-          <p className="text-gray-500">Accesso alla Dashboard Recruiting</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold text-bg-dark mb-4">Accesso con OTP</h1>
+        <p className="text-sm text-gray-500 mb-6">Inserisci la tua email aziendale per ricevere il link di accesso</p>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="nome@bancagenerali.it"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              className={error ? 'border-red-500' : ''}
+              placeholder="nome@bancagenerali.it"
             />
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
           {message && <p className="text-sm text-green-600">{message}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Invio email...' : 'Accedi via email'}
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Invio in corso..." : "Invia link di accesso"}
           </Button>
         </form>
       </div>
