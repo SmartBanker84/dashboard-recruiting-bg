@@ -9,37 +9,32 @@ import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginForm() {
   const router = useRouter()
-  const { signIn, userRole } = useAuth()
+  const { user } = useAuth()
 
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setMessage('')
 
-    const { error } = await signIn(email, password)
+    const { data, error } = await fetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(res => res.json())
 
     if (error) {
-      setError('Credenziali errate o account non trovato.')
-      setLoading(false)
-      return
+      setError('Errore durante l’invio dell’email.')
+    } else {
+      setMessage('Controlla la tua email per il link di accesso.')
     }
 
-    // Delay breve per attendere fetch ruolo utente
-    setTimeout(() => {
-      if (userRole?.role === 'recruiting') {
-        router.push('/dashboard/recruiting')
-      } else if (userRole?.role === 'manager') {
-        router.push('/dashboard/manager')
-      } else {
-        setError('Ruolo non riconosciuto. Contatta l’amministratore.')
-      }
-      setLoading(false)
-    }, 500)
+    setLoading(false)
   }
 
   return (
@@ -50,36 +45,25 @@ export default function LoginForm() {
           <p className="text-gray-500">Accesso alla Dashboard Recruiting</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
+              placeholder="nome@bancagenerali.it"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="nome@bancagenerali.it"
-              className={error ? 'border-red-500' : ''}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
               className={error ? 'border-red-500' : ''}
             />
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {message && <p className="text-sm text-green-600">{message}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Accesso in corso...' : 'Accedi'}
+            {loading ? 'Invio email...' : 'Accedi via email'}
           </Button>
         </form>
       </div>
