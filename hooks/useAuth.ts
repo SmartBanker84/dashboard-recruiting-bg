@@ -12,30 +12,30 @@ export function useAuth() {
   useEffect(() => {
     const getSession = async () => {
       const { data, error } = await supabase.auth.getUser()
-      if (error) {
+      if (error || !data?.user) {
         setUser(null)
         return
       }
 
-      if (data.user) {
-        const metadata = data.user.user_metadata
-        const userWithRole: User = {
-          id: data.user.id,
-          email: data.user.email!,
-          role: metadata.role || 'recruiting',
-        }
-        setUser(userWithRole)
+      const metadata = data.user.user_metadata
+      const userWithRole: User = {
+        id: data.user.id,
+        email: data.user.email ?? '',
+        role: metadata.role ?? 'recruiting',
       }
+
+      setUser(userWithRole)
     }
 
     getSession()
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        const metadata = session.user.user_metadata
         setUser({
           id: session.user.id,
-          email: session.user.email!,
-          role: session.user.user_metadata.role || 'recruiting',
+          email: session.user.email ?? '',
+          role: metadata.role ?? 'recruiting',
         })
       } else {
         setUser(null)
@@ -43,7 +43,7 @@ export function useAuth() {
     })
 
     return () => {
-      listener.subscription.unsubscribe()
+      authListener?.subscription?.unsubscribe()
     }
   }, [])
 
