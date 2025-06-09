@@ -1,68 +1,60 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("")
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage("")
-    setError("")
+    setError('')
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.error || "Errore sconosciuto")
-
-      setMessage("Email di accesso inviata. Controlla la tua casella.")
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      const role = data.user?.user_metadata?.role || 'recruiting'
+      router.push(role === 'manager' ? '/dashboard/manager' : '/dashboard/recruiting')
     }
+
+    setLoading(false)
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-bg-dark mb-4">Accesso con OTP</h1>
-        <p className="text-sm text-gray-500 mb-6">Inserisci la tua email aziendale per ricevere il link di accesso</p>
+      <form onSubmit={handleLogin} className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm space-y-4">
+        <h1 className="text-xl font-bold text-bg-dark">Accesso con password</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nome@bancagenerali.it"
-            />
-          </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-600">{message}</p>}
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Invio in corso..." : "Invia link di accesso"}
-          </Button>
-        </form>
-      </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Accesso...' : 'Accedi'}
+        </Button>
+      </form>
     </div>
   )
 }
