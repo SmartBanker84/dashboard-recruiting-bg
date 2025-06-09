@@ -1,73 +1,56 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { supabase, User } from '@/lib/supabase'
-import { User as SupabaseUser } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@/lib/supabase'
 
 export function useAuth() {
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-  const [userRole, setUserRole] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserRole(session.user.email!)
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (error) {
+        setUser(null)
+        return
       }
-      setLoading(false)
+
+      if (data.user) {
+        const metadata = data.user.user_metadata
+        const userWithRole: User = {
+          id: data.user.id,
+          email: data.user.email!,
+          role: metadata.role || 'recruiting',
+        }
+        setUser(userWithRole)
+      }
+    }
+
+    getSession()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          role: session.user.user_metadata.role || 'recruiting',
+        })
+      } else {
+        setUser(null)
+      }
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchUserRole(session.user.email!)
-        } else {
-          setUserRole(null)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    return () => {
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
-  const fetchUserRole = async (email: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single()
-
-      if (error) throw error
-      setUserRole(data)
-    } catch (error) {
-      console.error('Error fetching user role:', error)
-    }
-  }
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { data, error }
-  }
-
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    await supabase.auth.signOut()
+    router.push('/')
   }
 
-  return {
-    user,
-    userRole,
-    loading,
-    signIn,
-    signOut,
-  }
+  return { user, signOut }
 }
