@@ -1,15 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import { Bar } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+import { Download } from 'lucide-react'
+import * as XLSX from 'xlsx'
 import { Button } from '@/components/ui/button'
-import { Upload } from 'lucide-react'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default function RecruitingDashboard() {
-  const { user } = useAuth()
-  const [candidates, setCandidates] = useState([])
-  const [form, setForm] = useState({ name: '', email: '', note: '', file: null })
+  const [candidates, setCandidates] = useState<any[]>([])
+  const [monthlyStats, setMonthlyStats] = useState<number[]>([])
 
   useEffect(() => {
     fetchCandidates()
@@ -19,91 +30,108 @@ export default function RecruitingDashboard() {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
     setCandidates(data || [])
+    calculateMonthlyStats(data || [])
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+  const calculateMonthlyStats = (data: any[]) => {
+    const monthly = new Array(12).fill(0)
+    data.forEach((c) => {
+      const month = new Date(c.created_at).getMonth()
+      monthly[month]++
+    })
+    setMonthlyStats(monthly)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, file: e.target.files?.[0] || null }))
-  }
-
-  const handleSubmit = async () => {
-    let file_url = null
-    if (form.file) {
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('candidates')
-        .upload(`cv/${Date.now()}_${form.file.name}`, form.file)
-
-      if (uploadError) return console.error(uploadError)
-      const { data: publicUrl } = supabase.storage.from('candidates').getPublicUrl(uploadData.path)
-      file_url = publicUrl.publicUrl
-    }
-
-    const { error } = await supabase.from('candidates').insert([
-      {
-        name: form.name,
-        email: form.email,
-        note: form.note,
-        file_url,
-        created_at: new Date().toISOString()
-      }
-    ])
-    if (error) return console.error(error)
-    fetchCandidates()
-    setForm({ name: '', email: '', note: '', file: null })
+  const exportXLSX = () => {
+    const worksheet = XLSX.utils.json_to_sheet(
+      candidates.map((c) => ({
+        Nome: c.name,
+        Email: c.email,
+        Note: c.note,
+        'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT')
+      }))
+    )
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidati')
+    XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
   return (
-    <div className="min-h-screen bg-bg-light py-10 px-4">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <header className="text-center">
-          <h1 className="text-2xl font-bold text-bg-dark">Area Recruiting</h1>
-          <p className="text-gray-600">Compila il form per inserire un candidato</p>
-        </header>
+    <div className="min-h-screen bg-bg-light">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
 
-        <div className="bg-white p-6 rounded-xl shadow space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nome"
-            value={form.name}
-            onChange={handleInputChange}
-            className="w-full border rounded-md px-3 py-2"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleInputChange}
-            className="w-full border rounded-md px-3 py-2"
-          />
-          <textarea
-            name="note"
-            placeholder="Note"
-            value={form.note}
-            onChange={handleInputChange}
-            className="w-full border rounded-md px-3 py-2"
-          />
-          <input type="file" onChange={handleFileChange} className="w-full" />
-          <Button onClick={handleSubmit} className="mt-2">
-            <Upload className="w-4 h-4 mr-2" /> Carica Candidato
-          </Button>
+        {/* KPI */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Candidati Totali</p>
+            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Mese Corrente</p>
+            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <p className="text-gray-500">Conversione %</p>
+            <p className="text-3xl font-bold text-bg-dark">
+              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
+            </p>
+          </div>
         </div>
 
+        {/* GRAFICO */}
         <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold text-bg-dark mb-4">Ultimi Candidati</h2>
-          <ul className="space-y-2">
-            {candidates.map((c) => (
-              <li key={c.id} className="border-b pb-2">
-                <p className="font-medium text-gray-800">{c.name}</p>
-                <p className="text-sm text-gray-500">{c.email} - {new Date(c.created_at).toLocaleDateString('it-IT')}</p>
-              </li>
-            ))}
-          </ul>
+          <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
+          <Bar
+            height={300}
+            options={{ responsive: true, plugins: { legend: { display: false } } }}
+            data={{
+              labels: [
+                'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
+                'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'
+              ],
+              datasets: [
+                {
+                  label: 'Candidati',
+                  data: monthlyStats,
+                  backgroundColor: '#DC2626'
+                }
+              ]
+            }}
+          />
+        </div>
+
+        {/* TABELLA ED ESPORTAZIONE */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
+            <Button onClick={exportXLSX}>
+              <Download className="w-4 h-4 mr-2" /> Esporta
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left">Nome</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Note</th>
+                  <th className="px-4 py-2 text-left">Data</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {candidates.map((c) => (
+                  <tr key={c.id}>
+                    <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
+                    <td className="px-4 py-2">{c.email}</td>
+                    <td className="px-4 py-2">{c.note}</td>
+                    <td className="px-4 py-2">{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
