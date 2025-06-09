@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -22,7 +21,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default function ManagerPage() {
   const { signOut } = useAuth()
-  const [candidates, setCandidates] = useState([])
+  const [candidates, setCandidates] = useState<any[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
 
   useEffect(() => {
@@ -59,11 +58,6 @@ export default function ManagerPage() {
     XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
-  const currentMonth = new Date().getMonth()
-  const total = candidates.length
-  const monthTotal = monthlyStats[currentMonth]
-  const conversion = total > 0 ? Math.round((monthTotal / total) * 100) : 0
-
   return (
     <div className="min-h-screen bg-bg-light">
       <header className="bg-white shadow-sm border-b border-gray-200">
@@ -81,16 +75,17 @@ export default function ManagerPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Candidati Totali</p>
-            <p className="text-3xl font-bold text-bg-dark">{total}</p>
+            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">{monthTotal}</p>
+            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Conversione %</p>
-            <p className="text-3xl font-bold text-bg-dark">{conversion}%</p>
-            <Progress value={conversion} />
+            <p className="text-3xl font-bold text-bg-dark">
+              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
+            </p>
           </div>
         </div>
 
@@ -101,10 +96,7 @@ export default function ManagerPage() {
             height={300}
             options={{ responsive: true, plugins: { legend: { display: false } } }}
             data={{
-              labels: [
-                'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
-                'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'
-              ],
+              labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
               datasets: [
                 {
                   label: 'Candidati',
