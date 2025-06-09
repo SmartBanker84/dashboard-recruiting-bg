@@ -6,22 +6,18 @@ import { useAuth } from '@/hooks/useAuth'
 import LoginForm from '@/components/LoginForm'
 
 export default function Home() {
-  const { userRole, loading } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading) {
-      if (userRole?.role === 'manager') {
-        router.push('/manager')
-      } else if (userRole?.role === 'recruiting') {
-        router.push('/recruiting')
-      }
-    }
-  }, [userRole, loading, router])
+    if (!user) return
 
-  return (
-    <main>
-      {!userRole && !loading && <LoginForm />}
-    </main>
-  )
+    if (user.role === 'manager') {
+      router.push('/dashboard/manager')
+    } else if (user.role === 'recruiting') {
+      router.push('/dashboard/recruiting')
+    }
+  }, [user, router])
+
+  return <LoginForm />
 }
