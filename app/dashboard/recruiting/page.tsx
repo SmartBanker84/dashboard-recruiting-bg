@@ -1,7 +1,10 @@
-'use client'
-
 import RecruitingDashboard from '@/components/RecruitingDashboard'
+import DashboardLayout from '@/components/DashboardLayout'
 
 export default function RecruitingPage() {
-  return <RecruitingDashboard />
+  return (
+    <DashboardLayout>
+      <RecruitingDashboard />
+    </DashboardLayout>
+  )
 }
