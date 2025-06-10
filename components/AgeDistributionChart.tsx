@@ -23,7 +23,7 @@ interface AgeDistributionChartProps {
   }
 }
 
-export default function AgeDistributionChart({ ageRanges }: AgeDistributionChartProps) {
+export function AgeDistributionChart({ ageRanges }: AgeDistributionChartProps) {
   const labels = Object.keys(ageRanges)
   const dataValues = Object.values(ageRanges)
 
