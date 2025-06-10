@@ -8,12 +8,14 @@ import type { User } from '@/lib/supabase'
 export function useAuth() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const getSession = async () => {
       const { data, error } = await supabase.auth.getUser()
       if (error || !data?.user) {
         setUser(null)
+        setLoading(false)
         return
       }
 
@@ -25,6 +27,7 @@ export function useAuth() {
       }
 
       setUser(userWithRole)
+      setLoading(false)
     }
 
     getSession()
@@ -52,5 +55,5 @@ export function useAuth() {
     router.push('/')
   }
 
-  return { user, signOut }
+  return { user, userRole: user?.role, loading, signOut }
 }
