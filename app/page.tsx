@@ -1,10 +1,14 @@
-import RecruitingDashboard from '@/components/RecruitingDashboard'
-import DashboardLayout from '@/components/DashboardLayout'
+'use client'
 
-export default function HomePage() {
-  return (
-    <DashboardLayout>
-      <RecruitingDashboard />
-    </DashboardLayout>
-  )
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.push('/dashboard/recruiting')
+  }, [router])
+
+  return null
 }
