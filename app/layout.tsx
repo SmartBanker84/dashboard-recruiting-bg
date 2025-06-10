@@ -1,22 +1,17 @@
 import './globals.css'
-import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'Dashboard Recruiting - Banca Generali Private',
-  description: 'Sistema di gestione recruiting per Banca Generali Private Distretto Magnani',
+export const metadata = {
+  title: 'Distretto Magnani Recruiting',
+  description: 'Dashboard per la gestione delle candidature',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it" dir="ltr">
-      <body className={`${inter.className} bg-bg-light min-h-screen text-foreground antialiased`}>
+    <html lang="it">
+      <body className={inter.className}>
         {children}
       </body>
     </html>
