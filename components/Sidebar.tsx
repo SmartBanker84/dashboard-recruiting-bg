@@ -25,6 +25,11 @@ const navItems = [
     href: '/dashboard/manager',
     icon: <BarChart2 className="h-5 w-5" />,
   },
+  {
+    name: 'Analisi Età',
+    href: '/dashboard/manager/eta',
+    icon: <BarChart2 className="h-5 w-5" />,
+  },
 ]
 
 export function Sidebar() {
