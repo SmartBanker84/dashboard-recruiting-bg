@@ -3,9 +3,9 @@
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
-  BarElement,
   CategoryScale,
   LinearScale,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -14,7 +14,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface AgeDistributionChartProps {
-  ageRanges: {
+  ageStats: {
     '<25': number
     '25-34': number
     '35-44': number
@@ -23,9 +23,9 @@ interface AgeDistributionChartProps {
   }
 }
 
-export function AgeDistributionChart({ ageRanges }: AgeDistributionChartProps) {
-  const labels = Object.keys(ageRanges)
-  const dataValues = Object.values(ageRanges)
+export function AgeDistributionChart({ ageStats }: AgeDistributionChartProps) {
+  const labels = Object.keys(ageStats)
+  const dataValues = Object.values(ageStats)
 
   const data = {
     labels,
@@ -41,13 +41,28 @@ export function AgeDistributionChart({ ageRanges }: AgeDistributionChartProps) {
   const options = {
     responsive: true,
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => `${context.parsed.y} candidati`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+        },
+      },
     },
   }
 
   return (
     <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione Età</h2>
+      <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione per Età</h2>
       <Bar height={300} data={data} options={options} />
     </div>
   )
