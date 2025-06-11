@@ -10,12 +10,14 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 } from 'chart.js'
-import { Download } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { Download, Plus } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { AgeDistributionChart } from '@/components/AgeDistributionChart'
+import { AddCandidateModal } from '@/components/AddCandidateModal'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -23,6 +25,7 @@ export default function RecruitingDashboard() {
   const [candidates, setCandidates] = useState<any[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
   const [ageStats, setAgeStats] = useState<any>({})
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     fetchCandidates()
@@ -81,7 +84,7 @@ export default function RecruitingDashboard() {
         Email: c.email,
         Note: c.note,
         'Data di Nascita': c.birthdate ? new Date(c.birthdate).toLocaleDateString('it-IT') : '',
-        'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT')
+        'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT'),
       }))
     )
     const workbook = XLSX.utils.book_new()
@@ -92,7 +95,13 @@ export default function RecruitingDashboard() {
   return (
     <div className="min-h-screen bg-bg-light">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
+          <Button onClick={() => setModalOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Aggiungi Candidato
+          </Button>
+        </div>
 
         {/* KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -120,7 +129,7 @@ export default function RecruitingDashboard() {
             options={{ responsive: true, plugins: { legend: { display: false } } }}
             data={{
               labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
-              datasets: [{ label: 'Candidati', data: monthlyStats, backgroundColor: '#DC2626' }]
+              datasets: [{ label: 'Candidati', data: monthlyStats, backgroundColor: '#DC2626' }],
             }}
           />
         </div>
@@ -128,7 +137,7 @@ export default function RecruitingDashboard() {
         {/* DISTRIBUZIONE ETA */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione per Età</h2>
-          <AgeDistributionChart ageStats={ageStats} />
+          <AgeDistributionChart ageRanges={ageStats} />
         </div>
 
         {/* TABELLA ED ESPORTAZIONE */}
@@ -168,6 +177,14 @@ export default function RecruitingDashboard() {
           </div>
         </div>
       </div>
+
+      <AddCandidateModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          fetchCandidates()
+        }}
+      />
     </div>
   )
 }
