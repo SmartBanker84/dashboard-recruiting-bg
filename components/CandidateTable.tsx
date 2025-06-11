@@ -1,29 +1,49 @@
 'use client'
+
 import { Candidate } from '@/types/candidate'
 
-export function CandidateTable({ data, onUpdateStatus }: {
+export function CandidateTable({
+  data,
+  onUpdateStatus,
+}: {
   data: Candidate[]
   onUpdateStatus: (id: string, status: Candidate['status']) => void
 }) {
   return (
     <table className="min-w-full text-sm">
-      <thead><tr>
-        <th>Nome</th><th>Email</th><th>Società</th><th>Genere</th><th>Segmento</th><th>Stato</th><th>Data</th>
-      </tr></thead>
-      <tbody>
-        {data.map(c => (
+      <thead>
+        <tr className="bg-gray-50 text-left">
+          <th className="px-4 py-2">Nome</th>
+          <th className="px-4 py-2">Email</th>
+          <th className="px-4 py-2">Società</th>
+          <th className="px-4 py-2">Genere</th>
+          <th className="px-4 py-2">Segmento</th>
+          <th className="px-4 py-2">Stato</th>
+          <th className="px-4 py-2">Data</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {data.map((c) => (
           <tr key={c.id}>
-            <td>{c.name}</td>
-            <td>{c.email}</td>
-            <td>{c.company}</td>
-            <td>{c.gender}</td>
-            <td>{c.segment}</td>
-            <td>
-              <select value={c.status} onChange={(e) => onUpdateStatus(c.id, e.target.value as any)}>
-                {['Nuovo','Colloquio','Onboarded'].map(s => <option key={s} value={s}>{s}</option>)}
+            <td className="px-4 py-2">{c.name}</td>
+            <td className="px-4 py-2">{c.email}</td>
+            <td className="px-4 py-2">{c.company}</td>
+            <td className="px-4 py-2">{c.gender}</td>
+            <td className="px-4 py-2">{c.segment}</td>
+            <td className="px-4 py-2">
+              <select
+                value={c.status}
+                onChange={(e) => onUpdateStatus(c.id, e.target.value as Candidate['status'])}
+                className="border rounded px-2 py-1"
+              >
+                {['Nuovo', 'Colloquio', 'Onboarded'].map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
               </select>
             </td>
-            <td>{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
+            <td className="px-4 py-2">{c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '-'}</td>
           </tr>
         ))}
       </tbody>
