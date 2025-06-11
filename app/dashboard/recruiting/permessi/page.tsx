@@ -33,10 +33,10 @@ export default function PermessiPage() {
 
               <div className="flex items-center justify-between">
                 <Label className="text-sm">Esporta Dati</Label>
-                <Switch
-                  checked={perm.canExport}
-                  onCheckedChange={() => togglePermission(perm.id, 'canExport')}
-                />
+               <Switch
+  checked={perm.canExport}
+  onChange={() => togglePermission(perm.id, 'canExport')}
+/>
               </div>
 
               <div className="flex items-center justify-between">
