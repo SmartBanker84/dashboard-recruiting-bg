@@ -1,15 +1,35 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase/server'
 
 export async function GET() {
-  const supabase = createClient()
-  const { data, error } = await supabase.from('candidates').select('*')
-  return error ? NextResponse.json({ error: error.message }, { status: 500 }) : NextResponse.json(data)
+  try {
+    const { data, error } = await supabase.from('candidates').select('*').order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Errore GET /api/candidates:', error.message)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
+  } catch (err) {
+    return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 })
+  }
 }
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const supabase = createClient()
-  const { error } = await supabase.from('candidates').insert([body])
-  return error ? NextResponse.json({ error: error.message }, { status: 400 }) : NextResponse.json({ success: true })
+  try {
+    const body = await req.json()
+
+    const { data, error } = await supabase.from('candidates').insert([body])
+
+    if (error) {
+      console.error('Errore POST /api/candidates:', error.message)
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ data }, { status: 201 })
+  } catch (err) {
+    console.error('Errore interno POST:', err)
+    return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 })
+  }
 }
