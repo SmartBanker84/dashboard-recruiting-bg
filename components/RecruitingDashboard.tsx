@@ -16,11 +16,13 @@ import { Download, Plus } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/components/ui/button'
 import { AddCandidateModal } from '@/components/AddCandidateModal'
+import { Candidate } from '@/types/candidate'
+import { getMonthStats } from '@/lib/utils'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default function RecruitingDashboard() {
-  const [candidates, setCandidates] = useState<any[]>([])
+  const [candidates, setCandidates] = useState<Candidate[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -32,16 +34,7 @@ export default function RecruitingDashboard() {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
     setCandidates(data || [])
-    calculateMonthlyStats(data || [])
-  }
-
-  const calculateMonthlyStats = (data: any[]) => {
-    const monthly = new Array(12).fill(0)
-    data.forEach((c) => {
-      const month = new Date(c.created_at).getMonth()
-      monthly[month]++
-    })
-    setMonthlyStats(monthly)
+    setMonthlyStats(getMonthStats(data || []))
   }
 
   const exportXLSX = () => {
@@ -55,7 +48,7 @@ export default function RecruitingDashboard() {
         Stato: c.status,
         Note: c.note || '',
         'Data di Nascita': c.birthdate ? new Date(c.birthdate).toLocaleDateString('it-IT') : '',
-        'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT')
+        'Data Creazione': c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : ''
       }))
     )
     const workbook = XLSX.utils.book_new()
@@ -84,7 +77,6 @@ export default function RecruitingDashboard() {
           </Button>
         </div>
 
-        {/* KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Candidati Totali</p>
@@ -102,7 +94,6 @@ export default function RecruitingDashboard() {
           </div>
         </div>
 
-        {/* GRAFICO */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
           <Bar
@@ -119,7 +110,6 @@ export default function RecruitingDashboard() {
           />
         </div>
 
-        {/* TABELLA */}
         <div className="bg-white p-6 rounded-xl shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
@@ -163,8 +153,8 @@ export default function RecruitingDashboard() {
                         <option value="Scartato">Scartato</option>
                       </select>
                     </td>
-                    <td className="px-4 py-2">{c.note}</td>
-                    <td className="px-4 py-2">{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
+                    <td className="px-4 py-2">{c.note || '-'}</td>
+                    <td className="px-4 py-2">{c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '-'}</td>
                   </tr>
                 ))}
               </tbody>
