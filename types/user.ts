@@ -3,3 +3,4 @@ export interface User {
   email: string
   role: 'recruiter' | 'manager'
   created_at: string
+}
