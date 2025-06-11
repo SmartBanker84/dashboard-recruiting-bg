@@ -19,8 +19,21 @@ import { AddCandidateModal } from '@/components/AddCandidateModal'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
+interface Candidate {
+  id: string
+  name: string
+  email: string
+  birthdate?: string
+  note?: string
+  company?: string
+  gender?: string
+  segment?: string
+  status?: string
+  created_at: string
+}
+
 export default function RecruitingDashboard() {
-  const [candidates, setCandidates] = useState<any[]>([])
+  const [candidates, setCandidates] = useState<Candidate[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -31,11 +44,11 @@ export default function RecruitingDashboard() {
   const fetchCandidates = async () => {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
-    setCandidates(data || [])
+    setCandidates((data || []) as Candidate[])
     calculateMonthlyStats(data || [])
   }
 
-  const calculateMonthlyStats = (data: any[]) => {
+  const calculateMonthlyStats = (data: Candidate[]) => {
     const monthly = new Array(12).fill(0)
     data.forEach((c) => {
       const month = new Date(c.created_at).getMonth()
@@ -49,10 +62,10 @@ export default function RecruitingDashboard() {
       candidates.map((c) => ({
         Nome: c.name,
         Email: c.email,
-        Società: c.company,
-        Genere: c.gender,
-        Segmento: c.segment,
-        Stato: c.status,
+        Società: c.company || '',
+        Genere: c.gender || '',
+        Segmento: c.segment || '',
+        Stato: c.status || '',
         Note: c.note || '',
         'Data di Nascita': c.birthdate ? new Date(c.birthdate).toLocaleDateString('it-IT') : '',
         'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT')
@@ -81,12 +94,17 @@ export default function RecruitingDashboard() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
+            <p className="text-3xl font-bold text-bg-dark">
+              {monthlyStats[new Date().getMonth()]}
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Conversione %</p>
             <p className="text-3xl font-bold text-bg-dark">
-              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
+              {candidates.length
+                ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100)
+                : 0}
+              %
             </p>
           </div>
         </div>
@@ -136,12 +154,14 @@ export default function RecruitingDashboard() {
                   <tr key={c.id}>
                     <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
                     <td className="px-4 py-2">{c.email}</td>
-                    <td className="px-4 py-2">{c.company}</td>
-                    <td className="px-4 py-2">{c.gender}</td>
-                    <td className="px-4 py-2">{c.segment}</td>
-                    <td className="px-4 py-2">{c.status}</td>
-                    <td className="px-4 py-2">{c.note}</td>
-                    <td className="px-4 py-2">{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
+                    <td className="px-4 py-2">{c.company || '—'}</td>
+                    <td className="px-4 py-2">{c.gender || '—'}</td>
+                    <td className="px-4 py-2">{c.segment || '—'}</td>
+                    <td className="px-4 py-2">{c.status || '—'}</td>
+                    <td className="px-4 py-2">{c.note || '—'}</td>
+                    <td className="px-4 py-2">
+                      {new Date(c.created_at).toLocaleDateString('it-IT')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
