@@ -6,30 +6,33 @@ import { cn } from '@/lib/utils'
 import {
   Home,
   Users,
+  FileBarChart2,
+  Database,
+  ShieldCheck,
+  UploadCloud,
+  Cog,
   BarChart2,
+  FileSearch,
+  ClipboardList,
+  UserPlus,
+  Link2,
+  Activity,
 } from 'lucide-react'
 
 const navItems = [
-  {
-    name: 'Home',
-    href: '/',
-    icon: <Home className="h-5 w-5" />,
-  },
-  {
-    name: 'Recruiting',
-    href: '/dashboard/recruiting',
-    icon: <Users className="h-5 w-5" />,
-  },
-  {
-    name: 'Manager',
-    href: '/dashboard/manager',
-    icon: <BarChart2 className="h-5 w-5" />,
-  },
-  {
-    name: 'Analisi Età',
-    href: '/dashboard/manager/eta',
-    icon: <BarChart2 className="h-5 w-5" />,
-  },
+  { name: 'Dashboard', href: '/dashboard', icon: <Home className="h-5 w-5" /> },
+  { name: 'Recruiting', href: '/dashboard/recruiting', icon: <Users className="h-5 w-5" /> },
+  { name: 'Utenti', href: '/dashboard/recruiting/utenti', icon: <UserPlus className="h-5 w-5" /> },
+  { name: 'Audit', href: '/dashboard/recruiting/audit', icon: <FileSearch className="h-5 w-5" /> },
+  { name: 'Backup', href: '/dashboard/recruiting/backup', icon: <Database className="h-5 w-5" /> },
+  { name: 'Conversione', href: '/dashboard/recruiting/conversione', icon: <FileBarChart2 className="h-5 w-5" /> },
+  { name: 'Integrazioni', href: '/dashboard/recruiting/integrazioni', icon: <Link2 className="h-5 w-5" /> },
+  { name: 'KPI', href: '/dashboard/recruiting/kpi', icon: <BarChart2 className="h-5 w-5" /> },
+  { name: 'Monitoring', href: '/dashboard/recruiting/monitoring', icon: <Activity className="h-5 w-5" /> },
+  { name: 'Permessi', href: '/dashboard/recruiting/permessi', icon: <Cog className="h-5 w-5" /> },
+  { name: 'Sicurezza', href: '/dashboard/recruiting/sicurezza', icon: <ShieldCheck className="h-5 w-5" /> },
+  { name: 'Statistiche', href: '/dashboard/recruiting/statistiche', icon: <BarChart2 className="h-5 w-5" /> },
+  { name: 'Upload', href: '/dashboard/recruiting/upload', icon: <UploadCloud className="h-5 w-5" /> },
 ]
 
 export function Sidebar() {
