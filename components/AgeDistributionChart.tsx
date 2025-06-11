@@ -13,27 +13,31 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-interface AgeDistributionChartProps {
-  ageStats: {
-    '<25': number
-    '25-34': number
-    '35-44': number
-    '45-54': number
-    '55+': number
-  }
+type AgeStats = {
+  '<25': number
+  '25-34': number
+  '35-44': number
+  '45-54': number
+  '55+': number
 }
 
-export function AgeDistributionChart({ ageStats }: AgeDistributionChartProps) {
+interface Props {
+  ageStats: AgeStats
+}
+
+export function AgeDistributionChart({ ageStats }: Props) {
   const labels = Object.keys(ageStats)
-  const dataValues = Object.values(ageStats)
+  const values = Object.values(ageStats)
 
   const data = {
     labels,
     datasets: [
       {
         label: 'Candidati per fascia di età',
-        data: dataValues,
+        data: values,
         backgroundColor: '#DC2626',
+        borderRadius: 8,
+        barThickness: 40,
       },
     ],
   }
@@ -41,9 +45,7 @@ export function AgeDistributionChart({ ageStats }: AgeDistributionChartProps) {
   const options = {
     responsive: true,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
         callbacks: {
           label: (context: any) => `${context.parsed.y} candidati`,
@@ -60,10 +62,5 @@ export function AgeDistributionChart({ ageStats }: AgeDistributionChartProps) {
     },
   }
 
-  return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione per Età</h2>
-      <Bar height={300} data={data} options={options} />
-    </div>
-  )
+  return <Bar height={300} data={data} options={options} />
 }
