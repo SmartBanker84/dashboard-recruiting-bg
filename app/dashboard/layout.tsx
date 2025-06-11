@@ -1,13 +1,26 @@
-'use client'
-
-import React from 'react'
+// app/dashboard/layout.tsx
+import './globals.css'
+import { Inter } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'Distretto Magnani - Dashboard',
+  description: 'Area riservata Recruiting e Manager',
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen bg-bg-light">
-      <Sidebar />
-      <main className="flex-grow p-6 overflow-y-auto">{children}</main>
-    </div>
+    <html lang="it">
+      <body className={inter.className}>
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 bg-bg-light min-h-screen p-6">
+            {children}
+          </main>
+        </div>
+      </body>
+    </html>
   )
 }
