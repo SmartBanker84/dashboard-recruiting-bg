@@ -19,7 +19,7 @@ import {
   Activity,
 } from 'lucide-react'
 
-const navItems = [
+export const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: <Home className="h-5 w-5" /> },
   { name: 'Recruiting', href: '/dashboard/recruiting', icon: <Users className="h-5 w-5" /> },
   { name: 'Utenti', href: '/dashboard/recruiting/utenti', icon: <UserPlus className="h-5 w-5" /> },
@@ -40,15 +40,17 @@ export function Sidebar() {
 
   return (
     <aside className="w-full sm:w-64 bg-white border-r min-h-screen px-4 py-6 shadow-sm">
-      <div className="text-xl font-bold text-bg-dark mb-6">Distretto Magnani</div>
+      <div className="text-xl font-bold text-red-600 mb-6">Distretto Magnani</div>
       <nav className="space-y-2">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium hover:bg-gray-100',
-              pathname === item.href ? 'bg-gray-100 text-bg-dark' : 'text-gray-600'
+              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+              pathname.startsWith(item.href)
+                ? 'bg-red-100 text-red-800 font-semibold'
+                : 'text-gray-600 hover:bg-gray-100'
             )}
           >
             {item.icon}
