@@ -20,11 +20,33 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     segment: '',
     status: 'Nuovo'
   })
-
+  const [cvFile, setCvFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleCVUpload = async (file: File, candidateId: string) => {
+    const filePath = `${candidateId}/${file.name}`
+    const { error: uploadError } = await supabase.storage
+      .from('cv')
+      .upload(filePath, file, { upsert: true })
+
+    if (uploadError) throw new Error('Errore nel caricamento: ' + uploadError.message)
+
+    const { publicUrl } = supabase.storage.from('cv').getPublicUrl(filePath).data
+
+    const { error: dbError } = await supabase.from('uploads').insert({
+      candidate_id: candidateId,
+      file_name: file.name,
+      file_url: publicUrl,
+      uploaded_at: new Date().toISOString(),
+    })
+
+    if (dbError) throw new Error('Errore nel salvataggio metadati: ' + dbError.message)
+
+    return publicUrl
   }
 
   const handleSubmit = async () => {
@@ -34,26 +56,38 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     }
 
     setLoading(true)
-    const { error } = await supabase.from('candidates').insert([form])
-    setLoading(false)
 
-    if (error) {
-      console.error('Errore Supabase:', error)
+    const { data, error } = await supabase.from('candidates').insert([form]).select().single()
+    if (error || !data) {
+      setLoading(false)
+      console.error(error)
       alert('Errore durante l’inserimento:\n' + error.message)
-    } else {
-      onSuccess()
-      onClose()
-      setForm({
-        name: '',
-        email: '',
-        birthdate: '',
-        note: '',
-        company: '',
-        gender: '',
-        segment: '',
-        status: 'Nuovo'
-      })
+      return
     }
+
+    // Upload del CV solo se presente
+    if (cvFile) {
+      try {
+        await handleCVUpload(cvFile, data.id)
+      } catch (uploadErr: any) {
+        alert(uploadErr.message)
+      }
+    }
+
+    setLoading(false)
+    onSuccess()
+    onClose()
+    setForm({
+      name: '',
+      email: '',
+      birthdate: '',
+      note: '',
+      company: '',
+      gender: '',
+      segment: '',
+      status: 'Nuovo'
+    })
+    setCvFile(null)
   }
 
   if (!open) return null
@@ -128,6 +162,16 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
           placeholder="Note"
           className="w-full border rounded px-3 py-2"
         />
+
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Carica CV</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => setCvFile(e.target.files?.[0] || null)}
+            className="w-full border rounded px-3 py-2"
+          />
+        </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <button
