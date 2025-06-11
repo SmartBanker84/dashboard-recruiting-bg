@@ -147,7 +147,7 @@ export default function RecruitingDashboard() {
         {/* DISTRIBUZIONE ETA */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione per Età</h2>
-          <AgeDistributionChart ageRanges={ageStats} />
+          <AgeDistributionChart ageStats={ageStats} />
         </div>
 
         {/* TABELLA ED ESPORTAZIONE */}
