@@ -4,3 +4,4 @@ export interface UploadedFile {
   file_url: string
   file_name: string
   uploaded_at: string
+}
