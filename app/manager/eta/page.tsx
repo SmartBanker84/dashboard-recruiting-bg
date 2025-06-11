@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import AgeDistributionChart from '@/components/AgeDistributionChart'
+import { AgeDistributionChart } from '@/components/AgeDistributionChart'
 
 interface Candidate {
   id: string
