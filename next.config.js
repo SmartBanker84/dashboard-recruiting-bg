@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   experimental: {
-    serverActions: true,
-    appDir: true,
-  },
+    serverActions: undefined // puoi anche rimuoverlo del tutto
+  }
 }
 
 module.exports = nextConfig
