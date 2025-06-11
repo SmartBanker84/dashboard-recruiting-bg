@@ -21,10 +21,19 @@ import AddCandidateModal from '@/components/AddCandidateModal'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
+interface Candidate {
+  id: string
+  name: string
+  email: string
+  note?: string
+  birthdate?: string
+  created_at: string
+}
+
 export default function RecruitingDashboard() {
-  const [candidates, setCandidates] = useState<any[]>([])
+  const [candidates, setCandidates] = useState<Candidate[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
-  const [ageStats, setAgeStats] = useState<any>({})
+  const [ageStats, setAgeStats] = useState<Record<string, number>>({})
   const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
@@ -34,31 +43,27 @@ export default function RecruitingDashboard() {
   const fetchCandidates = async () => {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
-    setCandidates(data || [])
-    calculateMonthlyStats(data || [])
-    setAgeStats(calculateAgeStats(data || []))
+    const cleaned = (data || []) as Candidate[]
+    setCandidates(cleaned)
+    setMonthlyStats(calculateMonthlyStats(cleaned))
+    setAgeStats(calculateAgeStats(cleaned))
   }
 
-  const calculateMonthlyStats = (data: any[]) => {
+  const calculateMonthlyStats = (data: Candidate[]) => {
     const monthly = new Array(12).fill(0)
     data.forEach((c) => {
       const month = new Date(c.created_at).getMonth()
       monthly[month]++
     })
-    setMonthlyStats(monthly)
+    return monthly
   }
 
-  const calculateAgeStats = (data: any[]) => {
-    const ages: number[] = data
-      .map((c) => {
-        const birth = c.birthdate ? new Date(c.birthdate) : null
-        if (!birth) return null
-        const age = new Date().getFullYear() - birth.getFullYear()
-        return age
-      })
-      .filter((a) => a !== null)
+  const calculateAgeStats = (data: Candidate[]) => {
+    const ages = data
+      .map((c) => (c.birthdate ? new Date().getFullYear() - new Date(c.birthdate).getFullYear() : null))
+      .filter((a): a is number => a !== null)
 
-    const ageRanges = {
+    const stats = {
       '<25': 0,
       '25-34': 0,
       '35-44': 0,
@@ -67,14 +72,14 @@ export default function RecruitingDashboard() {
     }
 
     ages.forEach((age) => {
-      if (age! < 25) ageRanges['<25']++
-      else if (age! < 35) ageRanges['25-34']++
-      else if (age! < 45) ageRanges['35-44']++
-      else if (age! < 55) ageRanges['45-54']++
-      else ageRanges['55+']++
+      if (age < 25) stats['<25']++
+      else if (age < 35) stats['25-34']++
+      else if (age < 45) stats['35-44']++
+      else if (age < 55) stats['45-54']++
+      else stats['55+']++
     })
 
-    return ageRanges
+    return stats
   }
 
   const exportXLSX = () => {
@@ -82,7 +87,7 @@ export default function RecruitingDashboard() {
       candidates.map((c) => ({
         Nome: c.name,
         Email: c.email,
-        Note: c.note,
+        Note: c.note || '',
         'Data di Nascita': c.birthdate ? new Date(c.birthdate).toLocaleDateString('it-IT') : '',
         'Data Creazione': new Date(c.created_at).toLocaleDateString('it-IT'),
       }))
@@ -111,12 +116,17 @@ export default function RecruitingDashboard() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
+            <p className="text-3xl font-bold text-bg-dark">
+              {monthlyStats[new Date().getMonth()]}
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Conversione %</p>
             <p className="text-3xl font-bold text-bg-dark">
-              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
+              {candidates.length
+                ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100)
+                : 0}
+              %
             </p>
           </div>
         </div>
@@ -145,7 +155,8 @@ export default function RecruitingDashboard() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
             <Button onClick={exportXLSX}>
-              <Download className="w-4 h-4 mr-2" /> Esporta
+              <Download className="w-4 h-4 mr-2" />
+              Esporta
             </Button>
           </div>
 
@@ -165,11 +176,15 @@ export default function RecruitingDashboard() {
                   <tr key={c.id}>
                     <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
                     <td className="px-4 py-2">{c.email}</td>
-                    <td className="px-4 py-2">{c.note}</td>
+                    <td className="px-4 py-2">{c.note || '—'}</td>
                     <td className="px-4 py-2">
-                      {c.birthdate ? new Date().getFullYear() - new Date(c.birthdate).getFullYear() : '—'}
+                      {c.birthdate
+                        ? new Date().getFullYear() - new Date(c.birthdate).getFullYear()
+                        : '—'}
                     </td>
-                    <td className="px-4 py-2">{new Date(c.created_at).toLocaleDateString('it-IT')}</td>
+                    <td className="px-4 py-2">
+                      {new Date(c.created_at).toLocaleDateString('it-IT')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -180,9 +195,10 @@ export default function RecruitingDashboard() {
 
       <AddCandidateModal
         open={modalOpen}
-        onClose={() => {
-          setModalOpen(false)
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => {
           fetchCandidates()
+          setModalOpen(false)
         }}
       />
     </div>
