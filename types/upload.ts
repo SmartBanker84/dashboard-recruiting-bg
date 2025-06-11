@@ -3,5 +3,5 @@ export interface UploadedFile {
   candidate_id: string
   file_url: string
   file_name: string
-  uploaded_at: string
+  uploaded_at: string // ISO timestamp
 }
