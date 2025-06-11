@@ -17,7 +17,6 @@ import * as XLSX from 'xlsx'
 import { Button } from '@/components/ui/button'
 import { AddCandidateModal } from '@/components/AddCandidateModal'
 import { Candidate } from '@/types/candidate'
-import { getMonthStats } from '@/lib/utils'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -34,7 +33,18 @@ export default function RecruitingDashboard() {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
     setCandidates(data || [])
-    setMonthlyStats(getMonthStats(data || []))
+    calculateMonthlyStats(data || [])
+  }
+
+  const calculateMonthlyStats = (data: Candidate[]) => {
+    const monthly = new Array(12).fill(0)
+    data.forEach((c) => {
+      if (c.created_at) {
+        const month = new Date(c.created_at).getMonth()
+        monthly[month]++
+      }
+    })
+    setMonthlyStats(monthly)
   }
 
   const exportXLSX = () => {
@@ -56,14 +66,14 @@ export default function RecruitingDashboard() {
     XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
+  const handleStatusChange = async (id: string, newStatus: Candidate['status']) => {
     const { error } = await supabase.from('candidates').update({ status: newStatus }).eq('id', id)
     if (!error) {
       setCandidates((prev) =>
         prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
       )
     } else {
-      alert('Errore durante l\'aggiornamento dello stato')
+      alert("Errore durante l'aggiornamento dello stato")
     }
   }
 
@@ -143,7 +153,7 @@ export default function RecruitingDashboard() {
                     <td className="px-4 py-2">
                       <select
                         value={c.status}
-                        onChange={(e) => handleStatusChange(c.id, e.target.value)}
+                        onChange={(e) => handleStatusChange(c.id, e.target.value as Candidate['status'])}
                         className="border rounded px-2 py-1"
                       >
                         <option value="Nuovo">Nuovo</option>
@@ -153,8 +163,8 @@ export default function RecruitingDashboard() {
                         <option value="Scartato">Scartato</option>
                       </select>
                     </td>
-                    <td className="px-4 py-2">{c.note || '-'}</td>
-                    <td className="px-4 py-2">{c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '-'}</td>
+                    <td className="px-4 py-2">{c.note}</td>
+                    <td className="px-4 py-2">{c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : ''}</td>
                   </tr>
                 ))}
               </tbody>
