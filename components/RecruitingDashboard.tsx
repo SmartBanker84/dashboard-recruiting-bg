@@ -1,3 +1,4 @@
+// RecruitingDashboard.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -73,7 +74,7 @@ export default function RecruitingDashboard() {
         prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
       )
     } else {
-      alert("Errore durante l'aggiornamento dello stato")
+      alert('Errore durante l\'aggiornamento dello stato')
     }
   }
 
@@ -87,6 +88,7 @@ export default function RecruitingDashboard() {
           </Button>
         </div>
 
+        {/* KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow text-center">
             <p className="text-gray-500">Candidati Totali</p>
@@ -104,6 +106,7 @@ export default function RecruitingDashboard() {
           </div>
         </div>
 
+        {/* GRAFICO */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
           <Bar
@@ -120,6 +123,7 @@ export default function RecruitingDashboard() {
           />
         </div>
 
+        {/* TABELLA */}
         <div className="bg-white p-6 rounded-xl shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
@@ -152,7 +156,7 @@ export default function RecruitingDashboard() {
                     <td className="px-4 py-2">{c.segment}</td>
                     <td className="px-4 py-2">
                       <select
-                        value={c.status}
+                        value={c.status || 'Nuovo'}
                         onChange={(e) => handleStatusChange(c.id, e.target.value as Candidate['status'])}
                         className="border rounded px-2 py-1"
                       >
