@@ -12,7 +12,7 @@ interface Candidate {
 
 export default function ManagerEtaPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [ageRanges, setAgeRanges] = useState({
+  const [ageStats, setAgeStats] = useState({
     '<25': 0,
     '25-34': 0,
     '35-44': 0,
@@ -28,7 +28,7 @@ export default function ManagerEtaPage() {
     const { data, error } = await supabase.from('candidates').select('*')
     if (error) return console.error(error)
     setCandidates(data || [])
-    setAgeRanges(calculateAgeStats(data || []))
+    setAgeStats(calculateAgeStats(data || []))
   }
 
   const calculateAgeStats = (data: Candidate[]) => {
@@ -41,7 +41,7 @@ export default function ManagerEtaPage() {
       })
       .filter((a): a is number => a !== null)
 
-    const ageRanges = {
+    const ranges = {
       '<25': 0,
       '25-34': 0,
       '35-44': 0,
@@ -50,20 +50,20 @@ export default function ManagerEtaPage() {
     }
 
     ages.forEach((age) => {
-      if (age < 25) ageRanges['<25']++
-      else if (age < 35) ageRanges['25-34']++
-      else if (age < 45) ageRanges['35-44']++
-      else if (age < 55) ageRanges['45-54']++
-      else ageRanges['55+']++
+      if (age < 25) ranges['<25']++
+      else if (age < 35) ranges['25-34']++
+      else if (age < 45) ranges['35-44']++
+      else if (age < 55) ranges['45-54']++
+      else ranges['55+']++
     })
 
-    return ageRanges
+    return ranges
   }
 
   return (
     <div className="min-h-screen bg-bg-light px-6 py-10">
       <h1 className="text-2xl font-bold text-bg-dark mb-6">Analisi Età Candidati</h1>
-      <AgeDistributionChart ageRanges={ageRanges} />
+      <AgeDistributionChart ageStats={ageStats} />
     </div>
   )
 }
