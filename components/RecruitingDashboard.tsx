@@ -1,5 +1,4 @@
-// RecruitingDashboard.tsx
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -70,11 +69,13 @@ export default function RecruitingDashboard() {
   const handleStatusChange = async (id: string, newStatus: Candidate['status']) => {
     const { error } = await supabase.from('candidates').update({ status: newStatus }).eq('id', id)
     if (!error) {
-      setCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
+      setCandidates((prev: Candidate[]) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, status: newStatus } : c
+        )
       )
     } else {
-      alert('Errore durante l\'aggiornamento dello stato')
+      alert("Errore durante l'aggiornamento dello stato")
     }
   }
 
@@ -156,7 +157,7 @@ export default function RecruitingDashboard() {
                     <td className="px-4 py-2">{c.segment}</td>
                     <td className="px-4 py-2">
                       <select
-                        value={c.status || 'Nuovo'}
+                        value={c.status}
                         onChange={(e) => handleStatusChange(c.id, e.target.value as Candidate['status'])}
                         className="border rounded px-2 py-1"
                       >
