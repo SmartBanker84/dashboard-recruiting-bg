@@ -17,7 +17,7 @@ import { Download, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { AgeDistributionChart } from '@/components/AgeDistributionChart'
-import { AddCandidateModal } from '@/components/AddCandidateModal'
+import AddCandidateModal from '@/components/AddCandidateModal'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
