@@ -58,36 +58,36 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     setLoading(true)
 
     const { data, error } = await supabase.from('candidates').insert([form]).select().single()
+
     if (error || !data) {
-      setLoading(false)
       console.error(error)
-      alert('Errore durante l’inserimento:\n' + error.message)
+      alert('Errore durante l’inserimento:\n' + (error?.message || 'Errore sconosciuto'))
+      setLoading(false)
       return
     }
 
-    // Upload del CV solo se presente
-    if (cvFile) {
-      try {
+    try {
+      if (cvFile) {
         await handleCVUpload(cvFile, data.id)
-      } catch (uploadErr: any) {
-        alert(uploadErr.message)
       }
+      onSuccess()
+      onClose()
+      setForm({
+        name: '',
+        email: '',
+        birthdate: '',
+        note: '',
+        company: '',
+        gender: '',
+        segment: '',
+        status: 'Nuovo'
+      })
+      setCvFile(null)
+    } catch (uploadErr: any) {
+      alert(uploadErr.message)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
-    onSuccess()
-    onClose()
-    setForm({
-      name: '',
-      email: '',
-      birthdate: '',
-      note: '',
-      company: '',
-      gender: '',
-      segment: '',
-      status: 'Nuovo'
-    })
-    setCvFile(null)
   }
 
   if (!open) return null
