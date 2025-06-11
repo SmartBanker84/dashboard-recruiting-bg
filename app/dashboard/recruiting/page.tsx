@@ -30,10 +30,24 @@ interface Candidate {
   created_at: string
 }
 
+interface AgeStats {
+  '<25': number
+  '25-34': number
+  '35-44': number
+  '45-54': number
+  '55+': number
+}
+
 export default function RecruitingDashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [monthlyStats, setMonthlyStats] = useState<number[]>([])
-  const [ageStats, setAgeStats] = useState<Record<string, number>>({})
+  const [ageStats, setAgeStats] = useState<AgeStats>({
+    '<25': 0,
+    '25-34': 0,
+    '35-44': 0,
+    '45-54': 0,
+    '55+': 0,
+  })
   const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
@@ -58,12 +72,12 @@ export default function RecruitingDashboard() {
     return monthly
   }
 
-  const calculateAgeStats = (data: Candidate[]) => {
+  const calculateAgeStats = (data: Candidate[]): AgeStats => {
     const ages = data
       .map((c) => (c.birthdate ? new Date().getFullYear() - new Date(c.birthdate).getFullYear() : null))
       .filter((a): a is number => a !== null)
 
-    const stats = {
+    const stats: AgeStats = {
       '<25': 0,
       '25-34': 0,
       '35-44': 0,
