@@ -11,13 +11,11 @@ export const metadata = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={inter.className}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <main className="flex-1 bg-bg-light p-6">
-          {children}
-        </main>
-      </div>
+    <div className={`${inter.className} flex`}>
+      <Sidebar />
+      <main className="flex-1 bg-bg-light min-h-screen p-6">
+        {children}
+      </main>
     </div>
   )
 }
