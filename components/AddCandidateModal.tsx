@@ -14,12 +14,16 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     name: '',
     email: '',
     note: '',
-    birthdate: ''
+    birthdate: '',
+    company: '',
+    gender: '',
+    segment: '',
+    status: ''
   })
 
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
@@ -31,7 +35,10 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     if (!error) {
       onSuccess()
       onClose()
-      setForm({ name: '', email: '', note: '', birthdate: '' })
+      setForm({
+        name: '', email: '', note: '', birthdate: '',
+        company: '', gender: '', segment: '', status: ''
+      })
     } else {
       alert('Errore durante l’inserimento')
     }
@@ -43,7 +50,7 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-lg space-y-4">
         <h2 className="text-xl font-bold text-bg-dark">Aggiungi Candidato</h2>
-        
+
         <input
           type="text"
           name="name"
@@ -67,15 +74,61 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
           name="birthdate"
           value={form.birthdate}
           onChange={handleChange}
-          placeholder="Data di nascita"
           className="w-full border rounded px-3 py-2"
         />
+
+        <input
+          type="text"
+          name="company"
+          value={form.company}
+          onChange={handleChange}
+          placeholder="Società di provenienza"
+          className="w-full border rounded px-3 py-2"
+        />
+
+        <select
+          name="gender"
+          value={form.gender}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="">Seleziona Genere</option>
+          <option value="Maschio">Maschio</option>
+          <option value="Femmina">Femmina</option>
+          <option value="Altro">Altro</option>
+        </select>
+
+        <select
+          name="segment"
+          value={form.segment}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="">Seleziona Segmento</option>
+          <option value="CF">CF</option>
+          <option value="Banker">Banker</option>
+        </select>
+
+        <select
+          name="status"
+          value={form.status}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="">Stato colloquio</option>
+          <option value="Nuovo contatto">Nuovo contatto</option>
+          <option value="Telefonata">Telefonata</option>
+          <option value="Colloquio 1">Colloquio 1</option>
+          <option value="Colloquio 2">Colloquio 2</option>
+          <option value="Onboarding">Onboarding</option>
+          <option value="Chiusa">Chiusa</option>
+        </select>
 
         <textarea
           name="note"
           value={form.note}
           onChange={handleChange}
-          placeholder="Note"
+          placeholder="Note aggiuntive"
           className="w-full border rounded px-3 py-2"
         />
 
