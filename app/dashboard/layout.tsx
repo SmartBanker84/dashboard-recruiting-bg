@@ -1,5 +1,5 @@
-// app/dashboard/layout.tsx
-import './globals.css'
+
+import '@/app/globals.css' 
 import { Inter } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
 
