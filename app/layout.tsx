@@ -1,29 +1,26 @@
-"use client";
-
 import './globals.css'
 import { Inter } from 'next/font/google'
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { SessionContextProvider } from '@supabase/auth-helpers-react'
-import { useState } from 'react'
+import type { Metadata } from 'next'
+import SupabaseProvider from './SupabaseProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Distretto Magnani Recruiting',
   description: 'Dashboard per la gestione delle candidature',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Creiamo il client Supabase solo una volta per l'app
-  const [supabase] = useState(() => createBrowserSupabaseClient())
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="it">
       <body className={inter.className}>
-        {/* Provider Supabase: tutto l'albero ha accesso a sessione/metodi */}
-        <SessionContextProvider supabaseClient={supabase}>
+        <SupabaseProvider>
           {children}
-        </SessionContextProvider>
+        </SupabaseProvider>
       </body>
     </html>
   )
