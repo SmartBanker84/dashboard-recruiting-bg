@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { SessionContextProvider } from "@supabase/ssr";
+import { useState, createContext, useContext, ReactNode } from "react";
 
-export default function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() =>
-    createBrowserClient()
-  );
+const SupabaseContext = createContext<ReturnType<typeof createBrowserClient> | null>(null);
+
+export function useSupabase() {
+  const context = useContext(SupabaseContext);
+  if (!context) throw new Error("SupabaseProvider is missing");
+  return context;
+}
+
+export default function SupabaseProvider({ children }: { children: ReactNode }) {
+  const [supabase] = useState(() => createBrowserClient());
 
   return (
-    <SessionContextProvider client={supabase}>
+    <SupabaseContext.Provider value={supabase}>
       {children}
-    </SessionContextProvider>
+    </SupabaseContext.Provider>
   );
 }
