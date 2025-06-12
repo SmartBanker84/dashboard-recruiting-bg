@@ -1,28 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// ⚠️ Assicurati che questi valori siano definiti in `.env` o `.env.local`
+// Usa sempre le variabili uniformi in tutto il progetto!
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Usa il service role solo lato server
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('file')
     const id = formData.get('id') as string
 
-    if (!file || !id) {
-      return NextResponse.json({ error: 'File o ID mancanti' }, { status: 400 })
+    if (!(file instanceof Blob) || !id) {
+      return NextResponse.json({ error: 'File o ID mancanti o non validi' }, { status: 400 })
     }
 
-    const filePath = `cv/${id}/${file.name}`
+    // Ottieni il nome del file se disponibile, altrimenti default
+    const fileName = (file as File).name ?? 'file.pdf'
+    const filePath = `cv/${id}/${fileName}`
 
-    const { data, error: uploadError } = await supabase
+    // Converte il file in buffer per Supabase Storage
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('cv')
-      .upload(filePath, file, { upsert: true })
+      .upload(filePath, buffer, { upsert: true })
 
     if (uploadError) {
       console.error('Errore upload file:', uploadError.message)
@@ -33,6 +39,10 @@ export async function POST(req: NextRequest) {
       .storage
       .from('cv')
       .getPublicUrl(filePath)
+
+    if (!urlData?.publicUrl) {
+      return NextResponse.json({ error: 'Errore nel recupero della URL pubblica' }, { status: 500 })
+    }
 
     const { error: updateError } = await supabase
       .from('candidates')
@@ -46,7 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ path: urlData.publicUrl }, { status: 200 })
 
   } catch (err: any) {
-    console.error('Errore generico upload:', err.message)
+    console.error('Errore generico upload:', err?.message ?? err)
     return NextResponse.json({ error: 'Errore generico del server' }, { status: 500 })
   }
 }
