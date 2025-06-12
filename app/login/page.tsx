@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
-  const supabase = createClientComponentClient();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -28,8 +27,8 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.refresh(); // Aggiorna la sessione
-      router.push("/dashboard"); // Redirect dopo login
+      router.refresh();
+      router.push("/dashboard");
     }
   };
 
