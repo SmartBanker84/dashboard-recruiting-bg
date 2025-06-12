@@ -5,32 +5,34 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
   Home, Users, FileBarChart2, Database, ShieldCheck, UploadCloud, Cog,
-  BarChart2, FileSearch, ClipboardList, UserPlus, Link2, Activity
+  BarChart2, FileSearch, ClipboardList, UserPlus, Link2, Activity, UserCircle
 } from 'lucide-react'
 
-// Aggiungi i ruoli per ogni voce di menu
+// Navigation items in English
 export const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: <Home className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
   { name: 'Recruiting', href: '/dashboard/recruiting', icon: <Users className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
-  { name: 'Utenti', href: '/dashboard/recruiting/utenti', icon: <UserPlus className="h-5 w-5" />, roles: ['manager'] },
+  // Candidates section in English
+  { name: 'Candidates', href: '/dashboard/recruiting/candidates', icon: <UserCircle className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
+  { name: 'Users', href: '/dashboard/recruiting/users', icon: <UserPlus className="h-5 w-5" />, roles: ['manager'] },
   { name: 'Audit', href: '/dashboard/recruiting/audit', icon: <FileSearch className="h-5 w-5" />, roles: ['manager'] },
   { name: 'Backup', href: '/dashboard/recruiting/backup', icon: <Database className="h-5 w-5" />, roles: ['manager'] },
-  { name: 'Conversione', href: '/dashboard/recruiting/conversione', icon: <FileBarChart2 className="h-5 w-5" />, roles: ['manager'] },
-  { name: 'Integrazioni', href: '/dashboard/recruiting/integrazioni', icon: <Link2 className="h-5 w-5" />, roles: ['manager'] },
+  { name: 'Conversion', href: '/dashboard/recruiting/conversion', icon: <FileBarChart2 className="h-5 w-5" />, roles: ['manager'] },
+  { name: 'Integrations', href: '/dashboard/recruiting/integrations', icon: <Link2 className="h-5 w-5" />, roles: ['manager'] },
   { name: 'KPI', href: '/dashboard/recruiting/kpi', icon: <BarChart2 className="h-5 w-5" />, roles: ['manager'] },
   { name: 'Monitoring', href: '/dashboard/recruiting/monitoring', icon: <Activity className="h-5 w-5" />, roles: ['manager'] },
-  { name: 'Permessi', href: '/dashboard/recruiting/permessi', icon: <Cog className="h-5 w-5" />, roles: ['manager'] },
-  { name: 'Sicurezza', href: '/dashboard/recruiting/sicurezza', icon: <ShieldCheck className="h-5 w-5" />, roles: ['manager'] },
-  { name: 'Statistiche', href: '/dashboard/recruiting/statistiche', icon: <BarChart2 className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
+  { name: 'Permissions', href: '/dashboard/recruiting/permissions', icon: <Cog className="h-5 w-5" />, roles: ['manager'] },
+  { name: 'Security', href: '/dashboard/recruiting/security', icon: <ShieldCheck className="h-5 w-5" />, roles: ['manager'] },
+  { name: 'Statistics', href: '/dashboard/recruiting/statistics', icon: <BarChart2 className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
   { name: 'Upload', href: '/dashboard/recruiting/upload', icon: <UploadCloud className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
 ]
 
-// Sidebar "universale" per test: scegli ruolo manualmente (test) oppure prendi da localStorage/sessionStorage
+// Universal sidebar for testing: select role manually (test) or get from localStorage/sessionStorage
 export function Sidebar() {
   const pathname = usePathname()
   const [role, setRole] = useState<"manager" | "recruiter">("manager")
 
-  // Per test: salva ruolo in localStorage (persistente tra refresh)
+  // For testing: save role in localStorage (persistent between refreshes)
   useEffect(() => {
     const savedRole = window.localStorage.getItem("sidebarRole")
     if (savedRole === "manager" || savedRole === "recruiter") setRole(savedRole)
@@ -46,7 +48,7 @@ export function Sidebar() {
       <div className="text-xl font-bold text-red-600 mb-6">
         Distretto Magnani
       </div>
-      {/* Selettore ruolo per test */}
+      {/* Role selector for testing */}
       <div className="mb-4 flex gap-2">
         <button
           onClick={() => selectRole("manager")}
