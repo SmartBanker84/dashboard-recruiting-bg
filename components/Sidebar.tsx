@@ -1,22 +1,11 @@
-'use client'
+"use client"
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+import { useState, useEffect } from 'react'
 import {
-  Home,
-  Users,
-  FileBarChart2,
-  Database,
-  ShieldCheck,
-  UploadCloud,
-  Cog,
-  BarChart2,
-  FileSearch,
-  ClipboardList,
-  UserPlus,
-  Link2,
-  Activity,
+  Home, Users, FileBarChart2, Database, ShieldCheck, UploadCloud, Cog,
+  BarChart2, FileSearch, ClipboardList, UserPlus, Link2, Activity
 } from 'lucide-react'
 
 // Aggiungi i ruoli per ogni voce di menu
@@ -36,17 +25,45 @@ export const navItems = [
   { name: 'Upload', href: '/dashboard/recruiting/upload', icon: <UploadCloud className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
 ]
 
-export function Sidebar({ user }: { user: { role: string } }) {
+// Sidebar "universale" per test: scegli ruolo manualmente (test) oppure prendi da localStorage/sessionStorage
+export function Sidebar() {
   const pathname = usePathname()
+  const [role, setRole] = useState<"manager" | "recruiter">("manager")
+
+  // Per test: salva ruolo in localStorage (persistente tra refresh)
+  useEffect(() => {
+    const savedRole = window.localStorage.getItem("sidebarRole")
+    if (savedRole === "manager" || savedRole === "recruiter") setRole(savedRole)
+  }, [])
+
+  function selectRole(newRole: "manager" | "recruiter") {
+    setRole(newRole)
+    window.localStorage.setItem("sidebarRole", newRole)
+  }
 
   return (
     <aside className="w-full sm:w-64 bg-white border-r min-h-screen px-4 py-6 shadow-sm">
       <div className="text-xl font-bold text-red-600 mb-6">
         Distretto Magnani
       </div>
+      {/* Selettore ruolo per test */}
+      <div className="mb-4 flex gap-2">
+        <button
+          onClick={() => selectRole("manager")}
+          className={`px-3 py-1 rounded ${role === "manager" ? "bg-red-500 text-white" : "bg-gray-200"}`}
+        >
+          Manager
+        </button>
+        <button
+          onClick={() => selectRole("recruiter")}
+          className={`px-3 py-1 rounded ${role === "recruiter" ? "bg-red-500 text-white" : "bg-gray-200"}`}
+        >
+          Recruiter
+        </button>
+      </div>
       <nav className="space-y-2">
         {navItems
-          .filter(item => item.roles.includes(user.role))
+          .filter(item => item.roles.includes(role))
           .map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
@@ -54,12 +71,14 @@ export function Sidebar({ user }: { user: { role: string } }) {
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-red-100 text-red-800 font-semibold'
-                    : 'text-gray-600 hover:bg-gray-100'
-                )}
+                className={
+                  [
+                    'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                    isActive
+                      ? 'bg-red-100 text-red-800 font-semibold'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  ].join(' ')
+                }
               >
                 {item.icon}
                 {item.name}
