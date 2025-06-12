@@ -63,7 +63,7 @@ export default function DettaglioUtentePage() {
           <div><b>Email:</b> {user?.email}</div>
           <div><b>Ruolo:</b> {user?.role}</div>
           <div className="flex gap-3 mt-4">
-            <Button variant="secondary" onClick={() => setEditMode(true)}>Modifica</Button>
+            <Button variant="outline" onClick={() => setEditMode(true)}>Modifica</Button>
             <Button variant="destructive" onClick={handleDelete}>Elimina</Button>
           </div>
           {success && <div className="text-green-600">Utente aggiornato!</div>}
