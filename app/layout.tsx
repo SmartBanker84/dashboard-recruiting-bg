@@ -1,37 +1,16 @@
-import { cookies } from "next/headers"
-import { createServerClient } from "@supabase/ssr"
 import { Sidebar } from "@/components/Sidebar"
-import { redirect } from "next/navigation"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: cookies() } // <-- Corretto!
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const { data: userData, error } = await supabase
-    .from("users")
-    .select("id, email, role")
-    .eq("id", user.id)
-    .single()
-
-  if (error || !userData) {
-    return <div>Errore nel recupero dati utente.</div>
-  }
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex">
-      <Sidebar user={userData} />
-      <main className="flex-1 bg-bg-light min-h-screen p-6">
-        {children}
-      </main>
-    </div>
+    <html lang="it">
+      <body>
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 bg-bg-light min-h-screen p-6">
+            {children}
+          </main>
+        </div>
+      </body>
+    </html>
   )
 }
