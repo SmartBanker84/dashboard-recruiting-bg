@@ -14,7 +14,6 @@ export function useAuth() {
       }
     )
 
-    // Recupera l’utente alla prima render
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null)
     })
@@ -24,5 +23,12 @@ export function useAuth() {
     }
   }, [])
 
-  return { user }
+  // Funzione signOut
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    router.push('/login') // opzionale: redirect dopo il logout
+  }
+
+  return { user, signOut }
 }
