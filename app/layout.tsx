@@ -1,4 +1,6 @@
-import { Sidebar } from "@/components/Sidebar"
+import "@/app/globals.css"; // Importa SEMPRE in cima il CSS globale
+
+import { Sidebar } from "@/components/Sidebar";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,5 +14,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
       </body>
     </html>
-  )
+  );
 }
