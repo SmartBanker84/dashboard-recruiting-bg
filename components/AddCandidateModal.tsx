@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 
 interface AddCandidateModalProps {
   open: boolean
@@ -35,12 +35,12 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     const { data: publicData } = supabase.storage.from('cv').getPublicUrl(filePath)
     const publicUrl = publicData?.publicUrl
 
-    const { error: dbError } = await supabase.from('uploads').insert({
+    const { error: dbError } = await supabase.from('uploads').insert([{
       candidate_id: candidateId,
       file_name: file.name,
       file_url: publicUrl,
       uploaded_at: new Date().toISOString(),
-    })
+    }])
     if (dbError) throw new Error('Errore nel salvataggio metadati: ' + dbError.message)
 
     return publicUrl
@@ -72,8 +72,10 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     setLoading(false)
     onSuccess()
     onClose()
-    setForm({ name: '', email: '', birthdate: '', note: '', company: '', gender: '', segment: '', status: 'Nuovo' })
-    setCvFile(null)
+    setTimeout(() => {
+      setForm({ name: '', email: '', birthdate: '', note: '', company: '', gender: '', segment: '', status: 'Nuovo' })
+      setCvFile(null)
+    }, 200) // reset dopo chiusura modale
   }
 
   if (!open) return null
