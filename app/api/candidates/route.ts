@@ -1,25 +1,32 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase'
 
+// GET: recupera tutti i candidati
 export async function GET() {
-  const { data, error } = await supabase
-    .from('candidates')
-    .select('*')
-    .order('created_at', { ascending: false })
+  try {
+    const { data, error } = await supabaseServer
+      .from('candidates')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Errore GET /api/candidates:', error.message)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('Errore GET /api/candidates:', error.message)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
+  } catch (err) {
+    console.error('Errore interno GET /api/candidates:', err)
+    return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 })
   }
-
-  return NextResponse.json({ data })
 }
 
+// POST: inserisce un nuovo candidato
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('candidates')
       .insert([body])
       .select()
@@ -32,7 +39,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data }, { status: 201 })
   } catch (err) {
-    console.error('Errore interno POST:', err)
+    console.error('Errore interno POST /api/candidates:', err)
     return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 })
   }
 }
