@@ -1,3 +1,4 @@
+'use client';
 import { CandidateTable } from './components/CandidateTable';
 import { useCandidates } from './hooks/useCandidates';
 
