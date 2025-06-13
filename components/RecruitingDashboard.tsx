@@ -1,50 +1,49 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js'
-import { Download, Plus } from 'lucide-react'
-import * as XLSX from 'xlsx'
+import React, { useEffect, useState } from 'react'
+import { Candidate, CandidateStatus } from '@/types/candidate'
+import { CandidateTable } from './CandidateTable'
+import { AddCandidateModal } from './AddCandidateModal'
+import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { AddCandidateModal } from '@/components/AddCandidateModal'
-import { Candidate } from '@/types/candidate'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+import { Download } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 export default function RecruitingDashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [monthlyStats, setMonthlyStats] = useState<number[]>([])
+  const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'Tutti'>('Tutti')
 
   useEffect(() => {
     fetchCandidates()
   }, [])
 
   const fetchCandidates = async () => {
-    const { data, error } = await supabase.from('candidates').select('*')
-    if (error) return console.error(error)
-    setCandidates(data || [])
-    calculateMonthlyStats(data || [])
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) console.error('Errore caricamento candidati:', error.message)
+    if (data) setCandidates(data as Candidate[])
+    setLoading(false)
   }
 
-  const calculateMonthlyStats = (data: Candidate[]) => {
-    const monthly = new Array(12).fill(0)
-    data.forEach((c) => {
-      if (c.created_at) {
-        const month = new Date(c.created_at).getMonth()
-        monthly[month]++
-      }
-    })
-    setMonthlyStats(monthly)
+  const handleAddSuccess = () => {
+    fetchCandidates()
+  }
+
+  const onUpdateStatus = async (id: string, newStatus: CandidateStatus) => {
+    const { error } = await supabase.from('candidates').update({ status: newStatus }).eq('id', id)
+    if (!error) {
+      setCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status: newStatus as CandidateStatus } : c))
+      )
+    } else {
+      alert('Errore aggiornamento status')
+    }
   }
 
   const exportXLSX = () => {
@@ -66,126 +65,40 @@ export default function RecruitingDashboard() {
     XLSX.writeFile(workbook, 'candidati.xlsx')
   }
 
-  const handleStatusChange = async (id: string, newStatus: Candidate['status']) => {
-    const { error } = await supabase.from('candidates').update({ status: newStatus }).eq('id', id)
-    if (!error) {
-      setCandidates((prev: Candidate[]) =>
-        prev.map((c) =>
-          c.id === id ? { ...c, status: newStatus } : c
-        )
-      )
-    } else {
-      alert("Errore durante l'aggiornamento dello stato")
-    }
-  }
+  const filteredCandidates =
+    statusFilter === 'Tutti'
+      ? candidates
+      : candidates.filter((c) => c.status === statusFilter)
 
   return (
-    <div className="min-h-screen bg-bg-light">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" /> Aggiungi Candidato
-          </Button>
-        </div>
-
-        {/* KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Candidati Totali</p>
-            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">{monthlyStats[new Date().getMonth()]}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Conversione %</p>
-            <p className="text-3xl font-bold text-bg-dark">
-              {candidates.length ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100) : 0}%
-            </p>
-          </div>
-        </div>
-
-        {/* GRAFICO */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
-          <Bar
-            height={300}
-            options={{ responsive: true, plugins: { legend: { display: false } } }}
-            data={{
-              labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
-              datasets: [{
-                label: 'Candidati',
-                data: monthlyStats,
-                backgroundColor: '#DC2626'
-              }]
-            }}
-          />
-        </div>
-
-        {/* TABELLA */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
-            <Button onClick={exportXLSX}>
-              <Download className="w-4 h-4 mr-2" /> Esporta
-            </Button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left">Nome</th>
-                  <th className="px-4 py-2 text-left">Email</th>
-                  <th className="px-4 py-2 text-left">Società</th>
-                  <th className="px-4 py-2 text-left">Genere</th>
-                  <th className="px-4 py-2 text-left">Segmento</th>
-                  <th className="px-4 py-2 text-left">Stato</th>
-                  <th className="px-4 py-2 text-left">Note</th>
-                  <th className="px-4 py-2 text-left">Data</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {candidates.map((c) => (
-                  <tr key={c.id}>
-                    <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
-                    <td className="px-4 py-2">{c.email}</td>
-                    <td className="px-4 py-2">{c.company}</td>
-                    <td className="px-4 py-2">{c.gender}</td>
-                    <td className="px-4 py-2">{c.segment}</td>
-                    <td className="px-4 py-2">
-                      <select
-                        value={c.status}
-                        onChange={(e) => handleStatusChange(c.id, e.target.value as Candidate['status'])}
-                        className="border rounded px-2 py-1"
-                      >
-                        <option value="Nuovo">Nuovo</option>
-                        <option value="Contattato">Contattato</option>
-                        <option value="Colloquio">Colloquio</option>
-                        <option value="Onboarded">Onboarded</option>
-                        <option value="Scartato">Scartato</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">{c.note}</td>
-                    <td className="px-4 py-2">{c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <div className="p-4 space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Candidati</h1>
+        <div className="flex gap-2">
+          <Button onClick={exportXLSX}><Download className="w-4 h-4 mr-2" /> Esporta</Button>
+          <Button onClick={() => setModalOpen(true)}>+ Nuovo</Button>
         </div>
       </div>
 
-      <AddCandidateModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSuccess={() => {
-          fetchCandidates()
-          setModalOpen(false)
-        }}
-      />
+      <div className="flex gap-2 items-center">
+        <label>Filtro Stato:</label>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as CandidateStatus | 'Tutti')}
+          className="border rounded px-2 py-1"
+        >
+          <option value="Tutti">Tutti</option>
+          <option value="Nuovo">Nuovo</option>
+          <option value="Contattato">Contattato</option>
+          <option value="Colloquio">Colloquio</option>
+          <option value="Onboarded">Onboarded</option>
+          <option value="Scartato">Scartato</option>
+        </select>
+      </div>
+
+      <CandidateTable candidates={filteredCandidates} onUpdateStatus={onUpdateStatus} />
+
+      <AddCandidateModal open={modalOpen} onClose={() => setModalOpen(false)} onSuccess={handleAddSuccess} />
     </div>
   )
 }
