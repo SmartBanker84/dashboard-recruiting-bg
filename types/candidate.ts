@@ -13,6 +13,7 @@ export interface Candidate {
   id: string
   name: string
   email: string
+  telefono?: string // <--- AGGIUNGI QUESTA RIGA
   birthdate?: string // ISO date string es. "1990-05-01"
   company?: string
   gender?: CandidateGender
