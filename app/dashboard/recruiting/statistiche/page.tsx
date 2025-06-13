@@ -1,57 +1,22 @@
-'use client'
+import StatisticsChart from "@/components/StatisticsChart";
+import StatisticsFilters from "@/components/StatisticsFilters";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+const fakeData = {
+  "7": { labels: ["Lun", "Mar", "Mer", "Gio", "Ven"], values: [5, 8, 2, 9, 4] },
+  "30": { labels: ["Settimana 1", "Settimana 2", "Settimana 3", "Settimana 4"], values: [12, 18, 20, 15] },
+  "90": { labels: ["Gen", "Feb", "Mar"], values: [40, 52, 47] },
+};
 
 export default function StatistichePage() {
-  const [data, setData] = useState<any[]>([])
-  const [monthlyUploads, setMonthlyUploads] = useState<number[]>([])
+  const [period, setPeriod] = useState("30");
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    const { data, error } = await supabase.from('candidates').select('*')
-    if (error) return console.error(error)
-    setData(data || [])
-    processMonthlyData(data || [])
-  }
-
-  const processMonthlyData = (data: any[]) => {
-    const monthly = new Array(12).fill(0)
-    data.forEach((c) => {
-      const month = new Date(c.created_at).getMonth()
-      monthly[month]++
-    })
-    setMonthlyUploads(monthly)
-  }
+  const { labels, values } = fakeData[period];
 
   return (
-    <div className="min-h-screen bg-bg-light px-6 py-10">
-      <h1 className="text-2xl font-bold text-bg-dark mb-6">Statistiche CV Caricati</h1>
-      <div className="bg-white p-6 rounded-xl shadow">
-        <Bar
-          height={300}
-          options={{ responsive: true, plugins: { legend: { display: false } } }}
-          data={{
-            labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
-            datasets: [{ label: 'CV Caricati', data: monthlyUploads, backgroundColor: '#DC2626' }],
-          }}
-        />
-      </div>
-    </div>
-  )
+    <main className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Statistiche recruiting</h1>
+      <StatisticsFilters onFilter={setPeriod} />
+      <StatisticsChart title="Candidati Convertiti" data={values} labels={labels} />
+    </main>
+  );
 }
