@@ -1,4 +1,6 @@
 // components/IntegrationTable.tsx
+import SourceTag from './SourceTag';
+
 type Candidate = {
   id: string;
   name: string;
@@ -21,9 +23,7 @@ export default function IntegrationTable({ data }: { data: Candidate[] }) {
           <tr key={c.id}>
             <td className="border p-2">{c.name}</td>
             <td className="border p-2">
-              <span className={`px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs`}>
-                {c.source}
-              </span>
+              <SourceTag source={c.source} />
             </td>
             <td className="border p-2">{c.status}</td>
           </tr>
