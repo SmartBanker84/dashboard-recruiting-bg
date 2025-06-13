@@ -28,6 +28,7 @@ interface Candidate {
   note?: string
   birthdate?: string
   created_at: string
+  stato?: string
 }
 
 interface AgeStats {
@@ -50,6 +51,10 @@ export default function RecruitingDashboard() {
   })
   const [modalOpen, setModalOpen] = useState(false)
 
+  // Per le activity card
+  const [interviewing, setInterviewing] = useState(0)
+  const [hired, setHired] = useState(0)
+
   useEffect(() => {
     fetchCandidates()
   }, [])
@@ -61,6 +66,8 @@ export default function RecruitingDashboard() {
     setCandidates(cleaned)
     setMonthlyStats(calculateMonthlyStats(cleaned))
     setAgeStats(calculateAgeStats(cleaned))
+    setInterviewing(cleaned.filter(c => c.stato?.toLowerCase() === 'colloquio').length)
+    setHired(cleaned.filter(c => c.stato?.toLowerCase() === 'assunto').length)
   }
 
   const calculateMonthlyStats = (data: Candidate[]) => {
@@ -112,60 +119,112 @@ export default function RecruitingDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-light">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-bg-dark">Dashboard Recruiting</h1>
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Aggiungi Candidato
-          </Button>
+        {/* Titolo e intro */}
+        <div>
+          <h1 className="text-4xl font-bold mb-2 text-bg-dark">Dashboard Recruiting</h1>
+          <p className="text-xl text-gray-600 mb-6">
+            Benvenuto nella dashboard. Qui trovi una panoramica delle attività.
+          </p>
         </div>
 
-        {/* KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Candidati Totali</p>
-            <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
+        {/* Activity Cards stile immagine 2 */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-2">
+          <div className="rounded-2xl border bg-white py-8 px-6 flex flex-col items-center shadow-sm">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+                <circle cx="16" cy="16" r="16" fill="#F87171" fillOpacity="0.1"/>
+                <path d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="#DC2626"/>
+              </svg>
+              <span className="sr-only">Icona candidati totali</span>
+            </div>
+            <div className="text-4xl font-bold text-bg-dark">{candidates.length}</div>
+            <div className="text-lg text-gray-500 font-medium mt-1">Candidati totali</div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Mese Corrente</p>
-            <p className="text-3xl font-bold text-bg-dark">
-              {monthlyStats[new Date().getMonth()]}
-            </p>
+          <div className="rounded-2xl border bg-white py-8 px-6 flex flex-col items-center shadow-sm">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+                <circle cx="16" cy="16" r="16" fill="#60A5FA" fillOpacity="0.1"/>
+                <path d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="#2563EB"/>
+              </svg>
+              <span className="sr-only">Icona colloqui</span>
+            </div>
+            <div className="text-4xl font-bold text-bg-dark">{interviewing}</div>
+            <div className="text-lg text-gray-500 font-medium mt-1">Colloqui in corso</div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500">Conversione %</p>
-            <p className="text-3xl font-bold text-bg-dark">
-              {candidates.length
-                ? Math.round((monthlyStats[new Date().getMonth()] / candidates.length) * 100)
-                : 0}
-              %
-            </p>
+          <div className="rounded-2xl border bg-white py-8 px-6 flex flex-col items-center shadow-sm">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+                <circle cx="16" cy="16" r="16" fill="#6EE7B7" fillOpacity="0.2"/>
+                <path d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="#059669"/>
+              </svg>
+              <span className="sr-only">Icona assunzioni</span>
+            </div>
+            <div className="text-4xl font-bold text-bg-dark">{hired}</div>
+            <div className="text-lg text-gray-500 font-medium mt-1">Assunzioni</div>
           </div>
         </div>
 
-        {/* GRAFICO MENSILE */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-bg-dark">Andamento Mensile</h2>
-          <Bar
-            height={300}
-            options={{ responsive: true, plugins: { legend: { display: false } } }}
-            data={{
-              labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
-              datasets: [{ label: 'Candidati', data: monthlyStats, backgroundColor: '#DC2626' }],
-            }}
-          />
-        </div>
-
-        {/* DISTRIBUZIONE ETA */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-bg-dark">Distribuzione per Età</h2>
-          <AgeDistributionChart ageStats={ageStats} />
+        {/* KPI + Grafici piccoli */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+          {/* KPI Cards (dettaglio) */}
+          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-2xl shadow flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 font-medium mb-1">Candidati Totali</p>
+                <p className="text-3xl font-bold text-bg-dark">{candidates.length}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg ml-4">
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+                  <path fill="#34c759" d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                </svg>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 font-medium mb-1">Candidati Correnti (mese)</p>
+                <p className="text-3xl font-bold text-bg-dark">
+                  {monthlyStats[new Date().getMonth()]}
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg ml-4">
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+                  <path fill="#4F8EF7" d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4Zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          {/* Grafici piccoli */}
+          <div className="flex flex-col gap-6">
+            <div className="bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-sm font-semibold mb-2 text-bg-dark">Andamento Mensile</h2>
+              <div className="h-32">
+                <Bar
+                  options={{
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false,
+                    scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { font: { size: 10 } } } }
+                  }}
+                  data={{
+                    labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+                    datasets: [{ label: 'Candidati', data: monthlyStats, backgroundColor: '#DC2626' }],
+                  }}
+                />
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-sm font-semibold mb-2 text-bg-dark">Età</h2>
+              <div className="h-32 flex items-center">
+                <AgeDistributionChart ageStats={ageStats} small />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* TABELLA ED ESPORTAZIONE */}
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-6 rounded-2xl shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-bg-dark">Lista Candidati</h2>
             <Button onClick={exportXLSX}>
@@ -173,7 +232,6 @@ export default function RecruitingDashboard() {
               Esporta
             </Button>
           </div>
-
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
@@ -182,6 +240,7 @@ export default function RecruitingDashboard() {
                   <th className="px-4 py-2 text-left">Email</th>
                   <th className="px-4 py-2 text-left">Note</th>
                   <th className="px-4 py-2 text-left">Età</th>
+                  <th className="px-4 py-2 text-left">Stato</th>
                   <th className="px-4 py-2 text-left">Data</th>
                 </tr>
               </thead>
@@ -196,6 +255,7 @@ export default function RecruitingDashboard() {
                         ? new Date().getFullYear() - new Date(c.birthdate).getFullYear()
                         : '—'}
                     </td>
+                    <td className="px-4 py-2">{c.stato || '—'}</td>
                     <td className="px-4 py-2">
                       {new Date(c.created_at).toLocaleDateString('it-IT')}
                     </td>
