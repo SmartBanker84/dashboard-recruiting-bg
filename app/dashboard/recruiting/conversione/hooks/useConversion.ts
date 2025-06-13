@@ -1,6 +1,7 @@
-// hooks/useConversion.ts
-import { useEffect, useState } from 'react';
-import { getCandidatesToConvert, convertCandidate } from '../services/conversion';
+'use client'
+
+import { useEffect, useState } from 'react'
+import { getCandidatesToConvert, convertCandidate } from '../services/conversion'
 
 export const useConversion = () => {
   const [candidates, setCandidates] = useState<any[]>([]);
