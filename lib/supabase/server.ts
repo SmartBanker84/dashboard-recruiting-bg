@@ -1,7 +1,6 @@
-// lib/supabase/server.ts
 import { cookies } from "next/headers";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/types/supabase"; // usa any se mancante
+import { createServerComponentClient } from "@supabase/ssr";
+import { Database } from "@/types/supabase"; // usa 'any' se non hai definito il tipo Database
 
 export function createServerClient() {
   const cookieStore = cookies();
