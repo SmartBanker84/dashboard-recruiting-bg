@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Setup Supabase Server Client con variabili di ambiente
+// Supabase server-side client con SERVICE ROLE KEY
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // NOTA: deve essere la SERVICE ROLE KEY lato server
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 export async function POST(req: NextRequest) {
@@ -19,8 +19,9 @@ export async function POST(req: NextRequest) {
 
     const path = `cv/${id}-${file.name}`
 
+    // Upload del file nel bucket "cv"
     const { data, error: uploadError } = await supabase.storage
-      .from('cvs')
+      .from('cv')
       .upload(path, file, { upsert: true })
 
     if (uploadError) {
@@ -29,13 +30,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Ottieni URL pubblico
-    const { data: publicUrlData } = supabase.storage.from('cvs').getPublicUrl(path)
+    const { data: publicUrlData } = supabase.storage.from('cv').getPublicUrl(path)
 
     if (!publicUrlData?.publicUrl) {
       return NextResponse.json({ error: 'URL pubblico non generato' }, { status: 500 })
     }
 
-    // Aggiorna il record candidato con l'URL del CV
+    // Aggiorna il record del candidato con l’URL del CV
     const { error: updateError } = await supabase
       .from('candidates')
       .update({ cv_url: publicUrlData.publicUrl })
