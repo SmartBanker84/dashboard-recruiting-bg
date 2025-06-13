@@ -51,6 +51,7 @@ export function CandidateTable({ data, onUpdateStatus }: {
             <tr>
               <th className="px-4 py-2 text-left">Nome</th>
               <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Telefono</th> {/* AGGIUNTA */}
               <th className="px-4 py-2 text-left">Società</th>
               <th className="px-4 py-2 text-left">Genere</th>
               <th className="px-4 py-2 text-left">Segmento</th>
@@ -64,6 +65,7 @@ export function CandidateTable({ data, onUpdateStatus }: {
               <tr key={c.id}>
                 <td className="px-4 py-2 font-medium text-gray-800">{c.name}</td>
                 <td className="px-4 py-2">{c.email}</td>
+                <td className="px-4 py-2">{c.telefono || '—'}</td> {/* AGGIUNTA */}
                 <td className="px-4 py-2">{c.company}</td>
                 <td className="px-4 py-2">{c.gender}</td>
                 <td className="px-4 py-2">{c.segment}</td>
