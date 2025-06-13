@@ -1,4 +1,4 @@
-// components/ConversionTable.tsx
+import ConversionForm from './ConversionForm';
 
 type Candidate = {
   id: string;
@@ -8,13 +8,12 @@ type Candidate = {
 
 type Props = {
   data: Candidate[];
-  onConvert: (id: string) => void;
 };
 
-export default function ConversionTable({ data, onConvert }: Props) {
+export default function ConversionTable({ data }: Props) {
   return (
-    <table className="w-full border border-gray-300">
-      <thead className="bg-gray-100">
+    <table className="w-full border">
+      <thead>
         <tr>
           <th className="border px-4 py-2">Nome</th>
           <th className="border px-4 py-2">Stato attuale</th>
@@ -27,12 +26,7 @@ export default function ConversionTable({ data, onConvert }: Props) {
             <td className="border px-4 py-2">{c.name}</td>
             <td className="border px-4 py-2">{c.current_status}</td>
             <td className="border px-4 py-2">
-              <button
-                onClick={() => onConvert(c.id)}
-                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
-              >
-                Converti
-              </button>
+              <ConversionForm id={c.id} />
             </td>
           </tr>
         ))}
