@@ -9,14 +9,19 @@ import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
+type StatusFilter = CandidateStatus | 'Tutti'
+
 export default function RecruitingDashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'Tutti'>('Tutti')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('Tutti')
 
   useEffect(() => {
-    fetchCandidates()
+    (async () => {
+      await fetchCandidates()
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchCandidates = async () => {
@@ -84,7 +89,7 @@ export default function RecruitingDashboard() {
         <label>Filtro Stato:</label>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as CandidateStatus | 'Tutti')}
+          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
           className="border rounded px-2 py-1"
         >
           <option value="Tutti">Tutti</option>
