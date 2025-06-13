@@ -8,11 +8,10 @@ import {
   BarChart2, FileSearch, ClipboardList, UserPlus, Link2, Activity, UserCircle
 } from 'lucide-react'
 
-// Navigation items in English
+// Navigation items
 export const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: <Home className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
   { name: 'Recruiting', href: '/dashboard/recruiting', icon: <Users className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
-  // Candidates section in English
   { name: 'Candidates', href: '/dashboard/recruiting/candidates', icon: <UserCircle className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
   { name: 'Users', href: '/dashboard/recruiting/users', icon: <UserPlus className="h-5 w-5" />, roles: ['manager'] },
   { name: 'Audit', href: '/dashboard/recruiting/audit', icon: <FileSearch className="h-5 w-5" />, roles: ['manager'] },
@@ -27,17 +26,18 @@ export const navItems = [
   { name: 'Upload', href: '/dashboard/recruiting/upload', icon: <UploadCloud className="h-5 w-5" />, roles: ['manager', 'recruiter'] },
 ]
 
-// Universal sidebar for testing: select role manually (test) or get from localStorage/sessionStorage
+// Sidebar component
 export function Sidebar() {
   const pathname = usePathname()
   const [role, setRole] = useState<"manager" | "recruiter">("manager")
 
-  // For testing: save role in localStorage (persistent between refreshes)
+  // On mount, load role from localStorage for persistence
   useEffect(() => {
     const savedRole = window.localStorage.getItem("sidebarRole")
     if (savedRole === "manager" || savedRole === "recruiter") setRole(savedRole)
   }, [])
 
+  // Handler to change and persist role
   function selectRole(newRole: "manager" | "recruiter") {
     setRole(newRole)
     window.localStorage.setItem("sidebarRole", newRole)
@@ -67,20 +67,19 @@ export function Sidebar() {
         {navItems
           .filter(item => item.roles.includes(role))
           .map((item) => {
-            const isActive = pathname.startsWith(item.href)
+            // Check if the current path matches (highlights the tab)
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className={
-                  [
-                    'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-red-100 text-red-800 font-semibold'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  ].join(' ')
-                }
+                className={[
+                  'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                  isActive
+                    ? 'bg-red-100 text-red-800 font-semibold'
+                    : 'text-gray-600 hover:bg-gray-100'
+                ].join(' ')}
               >
                 {item.icon}
                 {item.name}
