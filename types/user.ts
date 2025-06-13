@@ -1,8 +1,10 @@
-export type UserRole = 'recruiter' | 'manager'
+// types/user.ts
 
-export interface User {
-  id: string
-  email: string
-  role: UserRole
-  created_at: string // ISO timestamp, es. "2024-06-12T14:30:00Z"
-}
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+};
+
+export type UserRole = "recruiter" | "manager" | "admin" | "viewer";
