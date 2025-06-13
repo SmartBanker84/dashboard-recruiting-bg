@@ -1,15 +1,23 @@
-// page.tsx
-import UploadForm from './components/UploadForm';
-import { useUpload } from './hooks/useUpload';
+"use client";
+
+import { useState } from "react";
+import UploadForm from "@/components/UploadForm";
+import UploadPreview from "@/components/UploadPreview";
 
 export default function UploadPage() {
-  const { handleUpload, loading } = useUpload();
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleUpload = async (f: File) => {
+    setFile(f);
+    // TODO: aggiungi qui logica upload su Supabase
+    console.log("File selezionato:", f.name);
+  };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Carica un CV</h2>
+    <main className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Carica un documento</h1>
       <UploadForm onUpload={handleUpload} />
-      {loading && <p>Caricamento in corso...</p>}
-    </div>
+      <UploadPreview file={file} />
+    </main>
   );
 }
