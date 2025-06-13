@@ -18,7 +18,7 @@ export default function NuovoCandidatoPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const { error } = await supabase.from("candidati").insert([form])
+    const { error } = await supabase.from("candidates").insert([form])
     setLoading(false)
     if (error) {
       setError(error.message)
@@ -36,9 +36,10 @@ export default function NuovoCandidatoPage() {
       <h1 className="text-2xl font-bold mb-4">Nuovo candidato</h1>
       <form onSubmit={handleSubmit} className="bg-white rounded shadow p-6 max-w-lg space-y-4">
         <div>
-          <label className="block font-medium mb-1">Nome</label>
+          <label className="block font-medium mb-1" htmlFor="nome">Nome</label>
           <input
             type="text"
+            id="nome"
             name="nome"
             value={form.nome}
             onChange={handleChange}
@@ -47,9 +48,10 @@ export default function NuovoCandidatoPage() {
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Email</label>
+          <label className="block font-medium mb-1" htmlFor="email">Email</label>
           <input
             type="email"
+            id="email"
             name="email"
             value={form.email}
             onChange={handleChange}
@@ -58,9 +60,10 @@ export default function NuovoCandidatoPage() {
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Posizione</label>
+          <label className="block font-medium mb-1" htmlFor="posizione">Posizione</label>
           <input
             type="text"
+            id="posizione"
             name="posizione"
             value={form.posizione}
             onChange={handleChange}
@@ -69,8 +72,9 @@ export default function NuovoCandidatoPage() {
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Stato</label>
+          <label className="block font-medium mb-1" htmlFor="stato">Stato</label>
           <select
+            id="stato"
             name="stato"
             value={form.stato}
             onChange={handleChange}
