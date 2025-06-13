@@ -1,3 +1,5 @@
+'use client'
+
 import { UserTable } from './components/UserTable';
 import { useUsers } from './hooks/useUsers';
 
