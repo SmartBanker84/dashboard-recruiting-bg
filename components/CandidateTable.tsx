@@ -1,7 +1,6 @@
 'use client'
 
 import { Candidate, CandidateStatus } from '@/types/candidate'
-import { Button } from '@/components/ui/button'
 
 type Props = {
   candidates: Candidate[]
@@ -42,6 +41,7 @@ export default function CandidateTable({ candidates, onUpdateStatus }: Props) {
                   onUpdateStatus(candidate.id, e.target.value as CandidateStatus)
                 }
                 className="border rounded px-2 py-1"
+                aria-label={`Cambia stato per ${candidate.name}`}
               >
                 {statusOptions.map((status) => (
                   <option key={status} value={status}>
