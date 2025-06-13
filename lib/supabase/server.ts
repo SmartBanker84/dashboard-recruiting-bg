@@ -1,6 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
+// lib/supabase/server.ts
+import { cookies } from "next/headers";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/types/supabase"; // usa any se mancante
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseServiceKey)
+export function createServerClient() {
+  const cookieStore = cookies();
+  return createServerComponentClient<Database>({ cookies: () => cookieStore });
+}
