@@ -13,7 +13,6 @@ export interface Candidate {
   id: string
   name: string
   email: string
-  telefono?: string // <--- AGGIUNGI QUESTA RIGA
   birthdate?: string // ISO date string es. "1990-05-01"
   company?: string
   gender?: CandidateGender
@@ -21,4 +20,5 @@ export interface Candidate {
   status?: CandidateStatus
   note?: string
   created_at?: string // timestamp ISO es. "2024-06-12T14:30:00Z"
+  cv_url?: string // URL pubblico del CV (opzionale)
 }
