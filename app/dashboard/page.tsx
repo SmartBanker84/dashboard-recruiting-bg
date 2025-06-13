@@ -1,25 +1,21 @@
-"use client";
+// app/dashboard/page.tsx
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import ManagerDashboard from "@/components/ManagerDashboard";
+import RecruitingDashboard from "@/components/RecruitingDashboard";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
-import Link from 'next/link';
+export default async function DashboardRouter() {
+  const supabase = createServerComponentClient({ cookies });
 
-export default function DashboardOverview() {
-  const router = useRouter();
+  const { data: { session } } = await supabase.auth.getSession();
+  const role = session?.user?.user_metadata?.role || "recruiter"; // default recruiter
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push("/login");
-      }
-    });
-  }, [router]);
+  if (role === "manager") return <ManagerDashboard />;
+  if (role === "recruiter") return <RecruitingDashboard />;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-bg-dark">Benvenuto nella Dashboard</h1>
-      {/* resto del tuo codice */}
+    <div className="p-6 text-center text-red-500">
+      ⚠️ Ruolo non autorizzato
     </div>
   );
 }
