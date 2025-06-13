@@ -1,9 +1,8 @@
 import CVList from "@/components/CVList";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createServerClient } from "@/lib/supabase/server";
 
 export default async function CVPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createServerClient();
 
   const { data, error } = await supabase
     .from("cv_uploads")
