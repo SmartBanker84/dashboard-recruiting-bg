@@ -1,62 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Usa sempre le variabili uniformi in tutto il progetto!
+// Setup Supabase Server Client con variabili di ambiente
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // NOTA: deve essere la SERVICE ROLE KEY lato server
 )
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData()
-    const file = formData.get('file')
-    const id = formData.get('id') as string
+    const form = await req.formData()
+    const file = form.get('file') as File
+    const id = form.get('id') as string
 
-    if (!(file instanceof Blob) || !id) {
-      return NextResponse.json({ error: 'File o ID mancanti o non validi' }, { status: 400 })
+    if (!file || !id) {
+      return NextResponse.json({ error: 'File o ID mancante' }, { status: 400 })
     }
 
-    // Ottieni il nome del file se disponibile, altrimenti default
-    const fileName = (file as File).name ?? 'file.pdf'
-    const filePath = `cv/${id}/${fileName}`
+    const path = `cv/${id}-${file.name}`
 
-    // Converte il file in buffer per Supabase Storage
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('cv')
-      .upload(filePath, buffer, { upsert: true })
+    const { data, error: uploadError } = await supabase.storage
+      .from('cvs')
+      .upload(path, file, { upsert: true })
 
     if (uploadError) {
-      console.error('Errore upload file:', uploadError.message)
+      console.error('Errore upload:', uploadError.message)
       return NextResponse.json({ error: uploadError.message }, { status: 500 })
     }
 
-    const { data: urlData } = supabase
-      .storage
-      .from('cv')
-      .getPublicUrl(filePath)
+    // Ottieni URL pubblico
+    const { data: publicUrlData } = supabase.storage.from('cvs').getPublicUrl(path)
 
-    if (!urlData?.publicUrl) {
-      return NextResponse.json({ error: 'Errore nel recupero della URL pubblica' }, { status: 500 })
+    if (!publicUrlData?.publicUrl) {
+      return NextResponse.json({ error: 'URL pubblico non generato' }, { status: 500 })
     }
 
+    // Aggiorna il record candidato con l'URL del CV
     const { error: updateError } = await supabase
       .from('candidates')
-      .update({ file_url: urlData.publicUrl })
+      .update({ cv_url: publicUrlData.publicUrl })
       .eq('id', id)
 
     if (updateError) {
+      console.error('Errore aggiornamento candidato:', updateError.message)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ path: urlData.publicUrl }, { status: 200 })
-
-  } catch (err: any) {
-    console.error('Errore generico upload:', err?.message ?? err)
-    return NextResponse.json({ error: 'Errore generico del server' }, { status: 500 })
+    return NextResponse.json({ path: publicUrlData.publicUrl }, { status: 200 })
+  } catch (err) {
+    console.error('Errore interno API Upload:', err)
+    return NextResponse.json({ error: 'Errore interno server' }, { status: 500 })
   }
 }
