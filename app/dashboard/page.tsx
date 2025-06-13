@@ -1,11 +1,9 @@
-// app/dashboard/page.tsx
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+ import { createServerClient } from "@/lib/supabase/server";
 import ManagerDashboard from "@/components/ManagerDashboard";
 import RecruitingDashboard from "@/components/RecruitingDashboard";
 
 export default async function DashboardRouter() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createServerClient();
 
   const { data: { session } } = await supabase.auth.getSession();
   const role = session?.user?.user_metadata?.role || "recruiter"; // default recruiter
