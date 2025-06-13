@@ -1,19 +1,6 @@
-'use client'
+import { Pie } from 'react-chartjs-2'
 
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
-
-type AgeStats = {
+interface AgeStats {
   '<25': number
   '25-34': number
   '35-44': number
@@ -23,44 +10,42 @@ type AgeStats = {
 
 interface Props {
   ageStats: AgeStats
+  small?: boolean   // <-- AGGIUNGI QUESTA LINEA
 }
 
-export function AgeDistributionChart({ ageStats }: Props) {
-  const labels = Object.keys(ageStats)
-  const values = Object.values(ageStats)
-
+export function AgeDistributionChart({ ageStats, small = false }: Props) {
   const data = {
-    labels,
+    labels: ['<25', '25-34', '35-44', '45-54', '55+'],
     datasets: [
       {
-        label: 'Candidati per fascia di età',
-        data: values,
-        backgroundColor: '#DC2626',
-        borderRadius: 8,
-        barThickness: 40,
+        data: [
+          ageStats['<25'],
+          ageStats['25-34'],
+          ageStats['35-44'],
+          ageStats['45-54'],
+          ageStats['55+'],
+        ],
+        backgroundColor: [
+          '#60A5FA',
+          '#FBBF24',
+          '#34D399',
+          '#F87171',
+          '#A78BFA',
+        ],
+        borderWidth: 1,
       },
     ],
   }
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => `${context.parsed.y} candidati`,
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-        },
-      },
-    },
-  }
-
-  return <Bar height={300} data={data} options={options} />
+  return (
+    <Pie
+      data={data}
+      options={{
+        plugins: { legend: { display: !small, position: 'bottom' } },
+        maintainAspectRatio: false,
+      }}
+      height={small ? 80 : 200}
+      width={small ? 80 : 200}
+    />
+  )
 }
