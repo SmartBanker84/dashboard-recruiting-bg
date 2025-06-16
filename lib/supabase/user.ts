@@ -1,7 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { Database } from "@/types/supabase"; // usa 'any' se non hai il tipo
 
-// Recupera informazioni sull'utente corrente dalla sessione
+// Recupera l'utente corrente dalla sessione
 export async function getCurrentUser() {
   const supabase = createServerClient();
 
@@ -13,11 +12,10 @@ export async function getCurrentUser() {
   if (error) throw error;
   if (!session) return null;
 
-  // Puoi estendere qui per fetchare ulteriori dati utente
   return session.user;
 }
 
-// Esempio: recupera info dal profilo associato all'utente
+// Recupera il profilo dell'utente corrente
 export async function getUserProfile() {
   const supabase = createServerClient();
 
@@ -37,4 +35,26 @@ export async function getUserProfile() {
 
   if (profileError) throw profileError;
   return profile;
+}
+
+// 🔧 Recupera la lista completa degli utenti (funzione per permessi/page.tsx)
+export async function getUsers() {
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase.auth.admin.listUsers();
+  if (error) throw error;
+
+  return data.users;
+}
+
+// 🔧 Aggiorna il ruolo di un utente (funzione per permessi/page.tsx)
+export async function updateUserRole(userId: string, role: string) {
+  const supabase = createServerClient();
+
+  const { error } = await supabase
+    .from("user_roles")
+    .update({ role })
+    .eq("user_id", userId);
+
+  if (error) throw error;
 }
