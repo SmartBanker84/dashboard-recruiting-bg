@@ -1,4 +1,4 @@
-// page.tsx
+'use client'
 import { useIntegrations } from './hooks/useIntegrations';
 import IntegrationTable from './components/IntegrationTable';
 
