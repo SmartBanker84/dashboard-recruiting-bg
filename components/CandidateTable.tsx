@@ -1,53 +1,46 @@
+
 'use client'
 
+import React from 'react'
 import { Candidate, CandidateStatus } from '@/types/candidate'
+import { Button } from '@/components/ui/button'
 
-type Props = {
+export function CandidateTable({
+  candidates,
+  onUpdateStatus
+}: {
   candidates: Candidate[]
-  onUpdateStatus: (id: string, newStatus: CandidateStatus) => void
-}
-
-const statusOptions: CandidateStatus[] = [
-  'Nuovo',
-  'Contattato',
-  'Colloquio',
-  'Onboarded',
-  'Scartato'
-]
-
-export default function CandidateTable({ candidates, onUpdateStatus }: Props) {
+  onUpdateStatus: (id: string, status: CandidateStatus) => void
+}) {
   return (
-    <table className="w-full table-auto border border-gray-300">
-      <thead className="bg-gray-100">
+    <table className="w-full border">
+      <thead>
         <tr>
-          <th className="px-4 py-2 border">Nome</th>
-          <th className="px-4 py-2 border">Email</th>
-          <th className="px-4 py-2 border">Società</th>
-          <th className="px-4 py-2 border">Stato</th>
-          <th className="px-4 py-2 border">Azione</th>
+          <th className="border px-4 py-2">Nome</th>
+          <th className="border px-4 py-2">Email</th>
+          <th className="border px-4 py-2">Stato</th>
+          <th className="border px-4 py-2">Azione</th>
         </tr>
       </thead>
       <tbody>
-        {candidates.map((candidate) => (
-          <tr key={candidate.id} className="text-center">
-            <td className="px-4 py-2 border">{candidate.name}</td>
-            <td className="px-4 py-2 border">{candidate.email}</td>
-            <td className="px-4 py-2 border">{candidate.company}</td>
-            <td className="px-4 py-2 border">{candidate.status}</td>
-            <td className="px-4 py-2 border">
+        {candidates.map((c) => (
+          <tr key={c.id}>
+            <td className="border px-4 py-2">{c.name}</td>
+            <td className="border px-4 py-2">{c.email}</td>
+            <td className="border px-4 py-2">{c.status}</td>
+            <td className="border px-4 py-2">
               <select
-                value={candidate.status}
+                value={c.status}
                 onChange={(e) =>
-                  onUpdateStatus(candidate.id, e.target.value as CandidateStatus)
+                  onUpdateStatus(c.id, e.target.value as CandidateStatus)
                 }
                 className="border rounded px-2 py-1"
-                aria-label={`Cambia stato per ${candidate.name}`}
               >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
+                <option value="Nuovo">Nuovo</option>
+                <option value="Contattato">Contattato</option>
+                <option value="Colloquio">Colloquio</option>
+                <option value="Onboarded">Onboarded</option>
+                <option value="Scartato">Scartato</option>
               </select>
             </td>
           </tr>
