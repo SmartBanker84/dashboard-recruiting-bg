@@ -1,4 +1,5 @@
-// hooks/useIntegrations.ts
+'use client'
+
 import { useEffect, useState } from 'react';
 import { getIntegratedCandidates } from '../services/integrations';
 
