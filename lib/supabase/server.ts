@@ -1,10 +1,9 @@
 // lib/supabase/server.ts
+import { createClient } from '@supabase/supabase-js'
 
-import { createClient } from "@supabase/supabase-js";
-
-const url = process.env.SUPABASE_URL!;
-const anonKey = process.env.SUPABASE_ANON_KEY!; // o SERVICE_ROLE_KEY se serve più permessi
-
-export function createServerClient() {
-  return createClient(url, anonKey);
+export const createServerClient = () => {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
