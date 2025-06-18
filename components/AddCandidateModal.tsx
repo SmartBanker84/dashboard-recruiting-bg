@@ -2,15 +2,16 @@
 
 import React, { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { CandidateForm } from '@/types/form'
 
-interface AddCandidateModalProps {
+interface Props {
   open: boolean
   onClose: () => void
   onSuccess: () => void
 }
 
-export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModalProps) {
-  const [form, setForm] = useState({
+export function AddCandidateModal({ open, onClose, onSuccess }: Props) {
+  const initialForm: CandidateForm = {
     name: '',
     email: '',
     birthdate: '',
@@ -18,22 +19,24 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
     company: '',
     gender: '',
     segment: '',
-    status: 'Nuovo'
-  })
+    status: 'Nuovo',
+  }
+
+  const [form, setForm] = useState<CandidateForm>(initialForm)
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   const handleCVUpload = async (file: File, candidateId: string) => {
     const filePath = `${candidateId}/${file.name}`
     const { error: uploadError } = await supabase.storage.from('cv').upload(filePath, file, { upsert: true })
-    if (uploadError) throw new Error('Errore nel caricamento: ' + uploadError.message)
+    if (uploadError) throw new Error('Caricamento fallito: ' + uploadError.message)
 
-    const { data: publicData } = supabase.storage.from('cv').getPublicUrl(filePath)
-    const publicUrl = publicData?.publicUrl
+    const { data } = supabase.storage.from('cv').getPublicUrl(filePath)
+    const publicUrl = data?.publicUrl
 
     const { error: dbError } = await supabase.from('uploads').insert([{
       candidate_id: candidateId,
@@ -41,41 +44,39 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
       file_url: publicUrl,
       uploaded_at: new Date().toISOString(),
     }])
-    if (dbError) throw new Error('Errore nel salvataggio metadati: ' + dbError.message)
+    if (dbError) throw new Error('Errore salvataggio metadati: ' + dbError.message)
 
     return publicUrl
   }
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) {
-      alert('Nome ed email sono obbligatori')
+      alert('Nome ed Email obbligatori')
       return
     }
 
     setLoading(true)
-    const { data, error } = await supabase.from('candidates').insert([form]).select().single()
 
+    const { data, error } = await supabase.from('candidates').insert([form]).select().single()
     if (error || !data) {
       setLoading(false)
-      alert('Errore durante l\'inserimento:\n' + (error?.message || ''))
+      alert('Errore inserimento: ' + (error?.message || ''))
       return
     }
 
     if (cvFile) {
       try {
         await handleCVUpload(cvFile, data.id)
-      } catch (uploadErr: any) {
-        alert(uploadErr.message)
+      } catch (err: any) {
+        alert('Errore caricamento CV: ' + err.message)
       }
     }
 
     setLoading(false)
     onSuccess()
     onClose()
-    setTimeout(() => {
-      setForm({ name: '', email: '', birthdate: '', note: '', company: '', gender: '', segment: '', status: 'Nuovo' })
-      setCvFile(null)
-    }, 200) // reset dopo chiusura modale
+    setForm(initialForm)
+    setCvFile(null)
   }
 
   if (!open) return null
@@ -85,10 +86,17 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
       <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-lg space-y-4">
         <h2 className="text-xl font-bold text-bg-dark">Aggiungi Candidato</h2>
 
-        <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Nome" className="w-full border rounded px-3 py-2" />
-        <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Email" className="w-full border rounded px-3 py-2" />
-        <input type="date" name="birthdate" value={form.birthdate} onChange={handleChange} className="w-full border rounded px-3 py-2" />
-        <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Società di provenienza" className="w-full border rounded px-3 py-2" />
+        {['name', 'email', 'birthdate', 'company'].map((field) => (
+          <input
+            key={field}
+            type={field === 'birthdate' ? 'date' : field === 'email' ? 'email' : 'text'}
+            name={field}
+            value={(form as any)[field]}
+            onChange={handleChange}
+            placeholder={field === 'company' ? 'Società di provenienza' : field.charAt(0).toUpperCase() + field.slice(1)}
+            className="w-full border rounded px-3 py-2"
+          />
+        ))}
 
         <select name="gender" value={form.gender} onChange={handleChange} className="w-full border rounded px-3 py-2">
           <option value="">Seleziona Genere</option>
@@ -103,7 +111,13 @@ export function AddCandidateModal({ open, onClose, onSuccess }: AddCandidateModa
           <option value="Banker">Banker</option>
         </select>
 
-        <textarea name="note" value={form.note} onChange={handleChange} placeholder="Note" className="w-full border rounded px-3 py-2" />
+        <textarea
+          name="note"
+          value={form.note}
+          onChange={handleChange}
+          placeholder="Note"
+          className="w-full border rounded px-3 py-2"
+        />
 
         <div>
           <label className="block text-sm text-gray-700 mb-1">Carica CV</label>
