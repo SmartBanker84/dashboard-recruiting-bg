@@ -6,14 +6,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getMonthStats(candidates: { created_at?: string }[]) {
-  const monthly = new Array(12).fill(0)
+  const months = Array(12).fill(0)
 
-  candidates.forEach((c) => {
-    if (c.created_at) {
-      const month = new Date(c.created_at).getMonth()
-      monthly[month]++
+  for (const c of candidates) {
+    const date = c.created_at ? new Date(c.created_at) : null
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      const month = date.getMonth()
+      months[month]++
     }
-  })
+  }
 
-  return monthly
+  return months
 }
