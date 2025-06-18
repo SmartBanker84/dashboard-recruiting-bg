@@ -1,4 +1,4 @@
-// lib/supabase/user.ts
+// lib/supabase/userServer.ts
 import { createServerClient } from '@/lib/supabase/server'
 import { Database } from '@/types/supabase'
 
