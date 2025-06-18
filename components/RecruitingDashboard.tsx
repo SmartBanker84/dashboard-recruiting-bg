@@ -6,7 +6,8 @@ import { CandidateTable } from './CandidateTable'
 import { AddCandidateModal } from './AddCandidateModal'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import KPIBox from '@/components/kpi/KPIBox'
+import { Download, UserCircle } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 type StatusFilter = CandidateStatus | 'Tutti'
@@ -18,10 +19,7 @@ export default function RecruitingDashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('Tutti')
 
   useEffect(() => {
-    (async () => {
-      await fetchCandidates()
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchCandidates()
   }, [])
 
   const fetchCandidates = async () => {
@@ -44,7 +42,7 @@ export default function RecruitingDashboard() {
     const { error } = await supabase.from('candidates').update({ status: newStatus }).eq('id', id)
     if (!error) {
       setCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status: newStatus as CandidateStatus } : c))
+        prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
       )
     } else {
       alert('Errore aggiornamento status')
@@ -84,6 +82,13 @@ export default function RecruitingDashboard() {
           <Button onClick={() => setModalOpen(true)}>+ Nuovo</Button>
         </div>
       </div>
+
+      {/* 🔢 KPI Section */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KPIBox label="Totali" value={candidates.length} icon={<UserCircle className="w-6 h-6 text-red-400" />} />
+        <KPIBox label="Colloquio" value={candidates.filter(c => c.status === 'Colloquio').length} icon={<UserCircle className="w-6 h-6 text-blue-400" />} />
+        <KPIBox label="Assunti" value={candidates.filter(c => c.status === 'Onboarded').length} icon={<UserCircle className="w-6 h-6 text-green-400" />} />
+      </section>
 
       <div className="flex gap-2 items-center">
         <label>Filtro Stato:</label>
