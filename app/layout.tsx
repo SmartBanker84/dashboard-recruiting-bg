@@ -1,16 +1,21 @@
-import "@/app/globals.css"; // Importa SEMPRE in cima il CSS globale
-
+// app/layout.tsx
+import "@/app/globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Distretto Magnani | Dashboard Recruiting",
+  description: "Gestione candidati e performance per recruiting finanziario",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>
-        <div className="flex">
+      <head />
+      <body className="bg-bg-light text-gray-900">
+        <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 bg-bg-light min-h-screen p-6">
-            {children}
-          </main>
+          <main className="flex-1 p-6">{children}</main>
         </div>
       </body>
     </html>
