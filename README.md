@@ -1,85 +1,33 @@
-# Dashboard Recruiting BG
+# Dashboard Recruiting – Distretto Magnani
 
-A modern recruitment dashboard for Banca Generali Private Distretto Magnani designed to streamline the recruitment process for financial consultants.
+Una dashboard moderna per la gestione del recruiting all’interno di Distretto Magnani, pensata per ottimizzare il processo di selezione di consulenti finanziari.
 
-## Features
+## Caratteristiche
 
-- Multi-role authentication (Recruiting Manager, Executive Manager)
-- Candidate management with CRUD operations
-- CV file upload and management
-- Analytics dashboard for executives
-- CSV data export
+- Autenticazione multi-ruolo (Recruiting Manager, Executive Manager)
+- Gestione candidati con operazioni CRUD
+- Upload e gestione file CV
+- Dashboard analitica per i manager
+- Esportazione dati in formato CSV/XLSX
 
-## Tech Stack
+## Stack Tecnologico
 
-- Frontend: Next.js 14 with TypeScript
-- Styling: Tailwind CSS with shadcn/ui components
-- Backend: Supabase (PostgreSQL, Auth, Storage)
-- Hosting: Vercel
+- **Frontend:** Next.js 14 con TypeScript
+- **Stile:** Tailwind CSS + shadcn/ui
+- **Backend:** Supabase (PostgreSQL, Auth, Storage)
+- **Hosting:** Vercel
 
-## Setup Instructions
+## Istruzioni per lo sviluppo locale
 
-### Prerequisites
+### Prerequisiti
 
-- Node.js 18.x or later
-- Supabase account with a project created
+- Node.js 18.x o superiore
+- Account Supabase con progetto attivo
 
-### Local Development
+### Setup
 
-1. Clone this repository:
+1. Clona questa repository:
+
 ```bash
 git clone https://github.com/SmartBanker84/dashboard-recruiting-bg.git
 cd dashboard-recruiting-bg
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Copy `.env.local.example` to `.env.local` and update with your Supabase credentials:
-```bash
-cp .env.local.example .env.local
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Database Setup
-
-The app requires two tables in Supabase:
-
-1. `users` table:
-   - `id` (uuid, primary key)
-   - `email` (text, not null)
-   - `role` (text, not null): 'recruiting' or 'manager'
-
-2. `candidates` table:
-   - `id` (uuid, primary key)
-   - `name` (text, not null)
-   - `email` (text, not null)
-   - `note` (text)
-   - `file_url` (text)
-   - `created_by` (uuid, not null)
-   - `created_at` (timestamp with time zone, default: now())
-
-3. Setup Row Level Security (RLS) policies:
-   - Allow 'recruiting' role to perform all operations
-   - Allow 'manager' role to only SELECT
-
-### Deployment
-
-The app is configured for seamless deployment on Vercel:
-
-```bash
-npm run build
-vercel --prod
-```
-
-## License
-
-Copyright (c) 2023 Banca Generali Private. All rights reserved.
